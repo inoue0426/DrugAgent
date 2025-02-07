@@ -11,10 +11,26 @@ DrugAgent is a multi-agent LLM system for drug-target interaction (DTI) predicti
 - Interpretable reasoning using Chain-of-Thought and ReAct frameworks
 - Detailed evidence-based predictions
 
+## System Architecture
+- Coordinator Agent: Task management and result integration
+- AI Agent: ML-based DTI prediction using DeepPurpose
+- Knowledge Graph Agent: Graph-based relationship analysis
+- Search Agent: Literature-based evidence gathering
+- Reasoning Agent: Final decision making with CoT/ReAct
+
 ## Environment
 
 Supported environments:
 - Mac with M1 chip (16GB unified memory)
+
+## API Configuration
+1. Create .env file in project root
+2. Add API keys:
+   OPENAI_API_KEY=your_key_here
+   BING_API_KEY=your_key_here
+
+This requires Open AI API and microsoft bing API.  
+We are working on updating with Ollama for free use.
 
 ### Installation using Docker
 
@@ -44,3 +60,4 @@ cd agents/ & python integrate_agent.py
     - rdkit==2023.9.6
     - bs4==0.0.1
     - python-dotenv
+
