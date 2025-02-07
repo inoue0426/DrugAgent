@@ -7,18 +7,10 @@ import numpy as np
 import pandas as pd
 import requests  # type: ignore
 from DeepPurpose.dataset import load_broad_repurposing_hub
-from sklearn.metrics import (
-    accuracy_score,
-    average_precision_score,
-    balanced_accuracy_score,
-    confusion_matrix,
-    f1_score,
-    log_loss,
-    matthews_corrcoef,
-    precision_score,
-    recall_score,
-    roc_auc_score,
-)
+from sklearn.metrics import (accuracy_score, average_precision_score,
+                             balanced_accuracy_score, confusion_matrix,
+                             f1_score, log_loss, matthews_corrcoef,
+                             precision_score, recall_score, roc_auc_score)
 
 
 # Function to load configuration file

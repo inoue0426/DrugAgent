@@ -16,7 +16,8 @@ from kg_utils import get_dti_scores as kg_score  # noqa
 # isort: on
 from ml_utils import get_dti_score as ml_score
 from search_utils import get_dti_scores as search_score
-from utils import create_agent, extract_last_dti_score, load_config, save_dti_results
+from utils import (create_agent, extract_last_dti_score, load_config,
+                   save_dti_results)
 
 load_dotenv()
 
