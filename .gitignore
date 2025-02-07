@@ -7,6 +7,13 @@ __pycache__/
 *.so
 *.DS_Store
 
+agents/ml_dti_scores/
+agents/new_kg_dti_scores/
+agents/pmc/
+agents/pubmed_paper_fulltext/
+agents/result/
+agents/search_results/
+
 # Distribution / packaging
 .Python
 build/
