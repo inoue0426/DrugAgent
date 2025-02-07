@@ -1,16 +1,22 @@
-# Pre-commit Hooks Setup
+# python_template
 
-This project uses [pre-commit](https://pre-commit.com/) to maintain code
-quality. Pre-commit runs a series of checks and formatters on your code before
-each commit, ensuring consistent style and catching common issues early.
+## Environment
 
-## Required Libraries and Tools
+Our experiment was conducted on Ubuntu with an NVIDIA A100 Tensor Core GPU. If
+you want to re-train model, we reccomend to use GPU.
 
-You need to install the following dependencies:
+## Installation using Docker
 
-```bash
-pip install pre-commit black isort ruff mypy
-npm install -g prettier
-brew install hadolint
-pre-commit install
+```shell
+git clone git@github.com:inoue0426/DrugAgent2.git
+cd DrugAgent2
+docker build -t tmp:latest .
+docker run -it -p 9999:9999 -v $(pwd):/app tmp:latest
+conda activate python_env
+```
+
+At the docker env.
+
+```shell
+cd agents/ & python integrate_agent.py
 ```
