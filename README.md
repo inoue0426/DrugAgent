@@ -13,8 +13,8 @@ DrugAgent is a multi-agent LLM system for drug-target interaction (DTI) predicti
 
 ## Environment
 
-Our experiment was conducted on Ubuntu with an NVIDIA A100 Tensor Core GPU. If
-you want to re-train model, we reccomend to use GPU.
+Supported environments:
+- Mac with M1 chip (16GB unified memory)
 
 ### Installation using Docker
 
