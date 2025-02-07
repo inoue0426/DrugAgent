@@ -188,7 +188,7 @@ Below is the integrated analysis for the DTI of Epirubicin against EGFR:
 • Search Evidence: 0.4  
  – Literature and clinical study evidence indicate a notable, experimentally supported interaction.
 
-Although the user’s instruction mentioned simply averaging the three scores ((0.3648 + 1 + 0.4)/3 ≈ 0.5883), our integration procedure prioritizes the search (dynamic experimental/clinical evidence) as the primary evidence, validated by the KG (structural and relational evidence), with the ML prediction as additional support. In this case, the search evidence (0.4) is taken as a baseline given its direct experimental context, while the strong structural link in the KG (score of 1) reinforces the potential interaction. The ML prediction is lower (0.3648) and tempers the overall interpretation slightly.  
+Our integration procedure prioritizes the search (dynamic experimental/clinical evidence) as the primary evidence, validated by the KG (structural and relational evidence), with the ML prediction as additional support. In this case, the search evidence (0.4) is taken as a baseline given its direct experimental context, while the strong structural link in the KG (score of 1) reinforces the potential interaction. The ML prediction is lower (0.3648) and tempers the overall interpretation slightly.  
 
 Using a weighting scheme that gives approximately 50% weight to the search evidence and 25% each to the ML and KG evidence, we obtain:  
  final_score = 0.5 × 0.4 + 0.25 × 0.3648 + 0.25 × 1  
