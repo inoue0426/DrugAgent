@@ -110,7 +110,7 @@ def calculate_dti_score(
     total_score = 0
     max_score = len(search_results)
 
-    positive_keywords = ["interacts", "binds", "activates", "inhibits", "modulates"]
+    positive_keywords = ["interacts", "binds", "activates", "modulates"]
     strong_keywords = ["strong", "significant", "potent", "effective"]
 
     for result in search_results:
