@@ -93,7 +93,7 @@ Next speaker: user_proxy
 
 
 >>>>>>>> EXECUTING FUNCTION get_ml_score...
-ml result:  [['Epirubicin', 'EGFR', 0.3647993505001068, 'This agent used a ML model(DeepPurpose) to calculate DTI score']]
+ml result:  [['Epirubicin', 'EGFR', 0.3647993505001068, 'This agent used an ML model(DeepPurpose) to calculate DTI score']]
 ERROR: [2025-02-04 17:04:18] autogen.runtime_logging - [runtime logging] log_function_use: autogen logger is None
 user_proxy (to chat_manager):
 
