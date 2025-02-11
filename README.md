@@ -63,7 +63,7 @@ cd agents/ & python integrate_agent.py
 
 ---
 
-## Usecase: Single drug and single target
+## Usecase: 10 drugs and 10 targets
 
 ```shell
 
@@ -124,14 +124,12 @@ To conduct the analysis, we need to perform the following steps in sequence:
 
 Let's begin by collecting predictions from the ML agent.
 
-```   
 # Requesting ML-based predictions
 ml_input = {
     "drugs": ['Vandetanib', 'Mubritinib', 'Masitinib', 'Dovitinib', 'Tofacitinib', 'Pi-103', 'Erlotinib', 'Mubritinib', 'Lapatinib', 'Gefitinib'],
     "targets": ['MARK2', 'MAPKAPK5', 'HCK', 'CDK4', 'TEK', 'TTK', 'PRKD3', 'NEK1', 'OXSR1', 'CLK2']
 }
 @ml_agent complete_request(ml_input)
-```
 Please proceed by sending the ML prediction request.
 
 --------------------------------------------------------------------------------
