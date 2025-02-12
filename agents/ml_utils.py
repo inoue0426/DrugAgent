@@ -10,7 +10,7 @@ ResultType = List[Union[str, float]]
 
 def get_dti_score(drug_names: List[str], target_names: List[str]) -> List[ResultType]:
     cache = FileCache("ml_dti_scores")
-    reasoning = "This agent used a ML model"
+    reasoning = "This agent used an ML model"
     result: List[Optional[ResultType]] = [None] * len(drug_names)
     uncached_pairs = []
 
