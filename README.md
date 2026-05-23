@@ -33,30 +33,10 @@ Embedding variables are required for PubMed RAG.
 
 ## Run
 
-Minimal ML-only run (SMILES/sequence resolved via online lookups if missing locally):
+Full DrugAgent run:
 
 ```bash
-uv run python -m drugagent.cli --drug Imatinib --gene KIT --enabled_agents ML
-```
-
-Enable specific agents (Coordinator mode is default):
-
-```bash
-uv run python -m drugagent.cli --drug Imatinib --gene KIT --enabled_agents ML,KG
-uv run python -m drugagent.cli --drug Imatinib --gene KIT --ablation no_ml
-uv run python -m drugagent.cli --drug Imatinib --gene KIT --run_all_ablations
-```
-
-To enable fast mode (parallel tool execution):
-
-```bash
-uv run python -m drugagent.cli --drug Imatinib --gene KIT --enabled_agents ML,KG,RAG --fast_mode
-```
-
-To avoid model name warnings, set the deployment model name explicitly:
-
-```bash
-uv run python -m drugagent.cli --drug Imatinib --gene KIT --enabled_agents ML,KG,RAG --model_name gpt-5.2-2025-12-11
+uv run python -m drugagent.cli --drug Imatinib --gene KIT --enabled_agents ML,KG,RAG
 ```
 
 ## Outputs
