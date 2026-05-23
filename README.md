@@ -1,0 +1,88 @@
+# DrugAgent
+
+Multi-agent workflow for drug-target interaction (DTI) evidence. It combines ML scores (DeepPurpose), KG signals, and PubMed RAG evidence, then produces a reasoning tree and final label.
+
+## Requirements
+
+- Python 3.11+
+- [uv](https://github.com/astral-sh/uv)
+
+## Setup (Repo Root)
+
+```bash
+curl -LsSf https://astral.sh/uv/install.sh | sh
+uv venv
+uv sync
+source .venv/bin/activate
+```
+
+## Environment Variables
+
+Create a `.env` file (see `.env.example`) or export these variables:
+
+```bash
+AZURE_OPENAI_API_LLM_KEY=...
+AZURE_OPENAI_ENDPOINT=...
+AZURE_OPENAI_DEPLOYMENT_NAME=...
+AZURE_OPENAI_API_VERSION=...
+AZURE_OPENAI_EMBEDDING_DEPLOYMENT_NAME=...
+AZURE_OPENAI_EMBEDDING_API_VERSION=...
+```
+
+Embedding variables are required for PubMed RAG.
+
+## Run
+
+Minimal ML-only run (SMILES/sequence resolved via online lookups if missing locally):
+
+```bash
+uv run python -m drugagent.cli --drug Imatinib --gene KIT --enabled_agents ML
+```
+
+Enable specific agents (Coordinator mode is default):
+
+```bash
+uv run python -m drugagent.cli --drug Imatinib --gene KIT --enabled_agents ML,KG
+uv run python -m drugagent.cli --drug Imatinib --gene KIT --ablation no_ml
+uv run python -m drugagent.cli --drug Imatinib --gene KIT --run_all_ablations
+```
+
+To enable fast mode (parallel tool execution):
+
+```bash
+uv run python -m drugagent.cli --drug Imatinib --gene KIT --enabled_agents ML,KG,RAG --fast_mode
+```
+
+To avoid model name warnings, set the deployment model name explicitly:
+
+```bash
+uv run python -m drugagent.cli --drug Imatinib --gene KIT --enabled_agents ML,KG,RAG --model_name gpt-5.2-2025-12-11
+```
+
+## Outputs
+
+- `output/trees/{config_id}/{drug}_{gene}.json` reasoning trees
+- `output/summary_{ablation}.csv` (CLI)
+- `output/summary.csv` (legacy summary output)
+- `output/ml_dti_scores`
+- `output/ml_lookup_cache`
+- `output/rag_dti_cache.csv`
+- `output/graph_dti_cache.csv`
+
+## Data Assets
+
+- ML: DeepPurpose model downloads automatically if not present.
+- RAG: place files at `data/kinase_rag_index.faiss` and `data/kinase_rag_metadata.json`. If missing, the app tries to download via `DRUGAGENT_RAG_GDRIVE_URL` into `DRUGAGENT_RAG_DOWNLOAD_DIR`.
+- KG: provide a local KG CSV and set `DRUGAGENT_KG_PATH` or place it at `data/KG+BDB.csv.gz`.
+
+## Citation
+
+```bibtex
+@article{inoue2025drugagent,
+  title={Drugagent: Multi-agent large language model-based reasoning for drug-target interaction prediction},
+  author={Inoue, Yoshitaka and Song, Tianci and Wang, Xinling and Luna, Augustin and Fu, Tianfan},
+  journal={ArXiv},
+  pages={arXiv--2408},
+  year={2025}
+}
+```

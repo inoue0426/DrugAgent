@@ -1,0 +1,501 @@
+,drug,gene,Value,pair_downloaded
+130,Quercetin,AR,1.0,10
+525,Dehydroepiandrosterone,AR,1.0,10
+852,Prazosin,AR,1.0,10
+458,Digoxin,AR,1.0,10
+459,Cyproterone Acetate,AR,1.0,10
+466,Progesterone,AR,1.0,10
+680,Paclitaxel,AR,1.0,10
+462,Carbazole,AR,1.0,10
+1206,Sirolimus,AR,1.0,10
+611,Apigenin,AR,1.0,10
+594,Tamoxifen,AR,1.0,10
+590,Curcumin,AR,1.0,10
+584,Kaempferol,AR,1.0,10
+4,Pyrene,AR,1.0,10
+457,Indole,AR,1.0,10
+1195,Daunorubicin,AR,1.0,10
+516,Flutamide,AR,1.0,10
+527,"1,10-Phenanthroline",AR,1.0,10
+219,Methylene Blue,AR,1.0,10
+862,Bortezomib,AR,1.0,10
+446,Rotenone,AR,1.0,10
+745,Calcitriol,AR,1.0,10
+747,Tacrolimus,AR,1.0,10
+534,Celecoxib,AR,1.0,10
+188,Forskolin,AR,1.0,10
+1011,Fluoxetine,AR,1.0,10
+214,Pregnenolone,AR,1.0,10
+248,Menadione,AR,1.0,10
+898,Dasatinib,AR,1.0,10
+297,Loratadine,AR,1.0,10
+966,Parthenolide,AR,1.0,10
+770,Bardoxolone Methyl,AR,1.0,9
+119,Diazepam,AR,1.0,9
+34,Haloperidol,AR,1.0,9
+169,Levonorgestrel,AR,1.0,9
+16,Bisphenol A,AR,1.0,9
+17,Flavone,AR,1.0,9
+279,Mifepristone,AR,1.0,9
+649,Finasteride,AR,1.0,9
+776,Pazopanib,AR,1.0,9
+867,Everolimus,AR,1.0,9
+582,Cycloheximide,AR,1.0,9
+792,Carfilzomib,AR,1.0,9
+709,Calcipotriol,AR,1.0,9
+303,Estriol,AR,1.0,9
+562,Ethinylestradiol,AR,1.0,8
+749,Tanespimycin,AR,1.0,8
+232,Norgestrel,AR,1.0,8
+596,Hydroxyflutamide,AR,1.0,8
+14,Disulfiram,AR,1.0,8
+15,Phenothiazine,AR,1.0,8
+1148,Mycophenolate Mofetil,AR,1.0,8
+163,Fenofibrate,AR,1.0,8
+270,Fipronil,AR,1.0,8
+1082,Nocodazole,AR,1.0,8
+1142,Clobetasol Propionate,AR,1.0,7
+1188,Efavirenz,AR,1.0,7
+107,Diethylstilbestrol,AR,1.0,7
+765,Paroxetine,AR,1.0,7
+33,Troglitazone,AR,1.0,7
+23,Triclosan,AR,1.0,7
+961,Mycophenolic Acid,AR,1.0,7
+121,Dactinomycin,AR,1.0,7
+816,Clobetasol,AR,1.0,7
+682,Rimonabant,AR,1.0,7
+103,Reserpine,AR,1.0,6
+1201,Alphaxalone,AR,1.0,5
+298,Ouabain,AR,1.0,5
+489,Vinclozolin,AR,1.0,5
+151,Tebuconazole,AR,1.0,5
+93,Paraoxon,AR,1.0,5
+191,Bexarotene,AR,1.0,5
+1065,Nicardipine,AR,1.0,4
+430,Fluoranthene,AR,1.0,4
+1049,Sanguinarine,AR,1.0,4
+387,Tolvaptan,AR,1.0,4
+920,Gossypol,AR,1.0,4
+634,bisphenol AF,AR,1.0,4
+631,"2,4-Dinitrophenol",AR,1.0,4
+73,Fludioxonil,AR,1.0,4
+560,Linuron,AR,1.0,4
+65,Cyprodinil,AR,1.0,4
+28,Endrin,AR,1.0,3
+334,Fenretinide,AR,1.0,3
+780,Dronedarone,AR,1.0,3
+448,Procymidone,AR,1.0,3
+1088,Loperamide,AR,1.0,3
+396,Clioquinol,AR,1.0,3
+1048,Spiperone,AR,1.0,3
+567,Metolachlor,AR,1.0,3
+1252,Apomorphine,AR,1.0,3
+633,Prochloraz,AR,1.0,3
+212,2-Chloro-5-nitrobenzanilide,AR,1.0,3
+293,Pimozide,AR,1.0,3
+288,Danazol,AR,1.0,3
+433,Coumaphos,AR,1.0,2
+417,Octocrylene,AR,1.0,2
+479,Benzo(F)Quinoline,AR,1.0,2
+529,Parathion,AR,1.0,2
+369,Astemizole,AR,1.0,2
+229,Dicyclohexyl phthalate,AR,1.0,2
+445,Pendimethalin,AR,1.0,2
+269,Difenoconazole,AR,1.0,2
+21,Methoxychlor,AR,1.0,2
+171,Avobenzone,AR,1.0,2
+247,Tolnaftate,AR,1.0,2
+385,Luliconazole,AR,1.0,2
+13,Nitrofurazone,AR,1.0,2
+194,Tolcapone,AR,1.0,2
+294,Nilutamide,AR,1.0,2
+636,Propiconazole,AR,1.0,2
+1175,Mevastatin,AR,1.0,2
+717,Demecolcine,AR,1.0,2
+585,Tetrabromobisphenol A,AR,1.0,2
+595,Zeranol,AR,1.0,2
+1012,Fluspirilene,AR,1.0,2
+1126,Chloroxine,AR,1.0,2
+252,Penconazole,AR,1.0,1
+512,Bisphenol B,AR,1.0,1
+30,1-Hydroxypyrene,AR,1.0,1
+22,Oryzalin,AR,1.0,1
+1014,Efaroxan,AR,1.0,1
+18,Azoxystrobin,AR,1.0,1
+602,Thiram,AR,1.0,1
+659,Gestodene,AR,1.0,1
+274,Fenoxycarb,AR,1.0,1
+550,Triclocarban,AR,1.0,1
+558,Captan,AR,1.0,1
+255,Hexestrol,AR,1.0,1
+693,Zafirlukast,AR,1.0,1
+7,4-Tert-octylphenol,AR,1.0,1
+52,"2,5-Di-tert-butylhydroquinone",AR,1.0,1
+647,Diuron,AR,1.0,1
+588,Ethacrynic Acid,AR,1.0,1
+5,1-Naphthaleneacetic Acid,AR,1.0,1
+703,Tioconazole,AR,1.0,1
+40,Mepanipyrim,AR,1.0,1
+300,Atraric Acid,AR,1.0,1
+43,Hexaconazole,AR,1.0,1
+605,Chlordecone,AR,1.0,1
+140,Bergapten,AR,1.0,1
+1229,Emetine,AR,1.0,1
+375,Oxymetholone,AR,1.0,1
+801,Penfluridol,AR,1.0,1
+757,Nitroxoline,AR,1.0,1
+72,Tetramethrin,AR,1.0,1
+74,Fenbuconazole,AR,1.0,1
+61,Methyl Parathion,AR,1.0,1
+60,Tetraconazole,AR,1.0,1
+70,Pyridaben,AR,1.0,1
+317,Benzo(K)Fluoranthene,AR,1.0,1
+196,Triphenylethylene,AR,1.0,1
+424,Oxadiazon,AR,1.0,1
+370,Phenethyl Isothiocyanate,AR,1.0,1
+866,Amorolfine,AR,1.0,1
+860,Lestaurtinib,AR,1.0,1
+114,Acetochlor,AR,1.0,1
+881,Norgestimate,AR,1.0,1
+392,Bisacodyl,AR,1.0,1
+81,Ro 40-6055,AR,1.0,1
+85,Quinoxyfen,AR,1.0,1
+97,Nitrofen,AR,1.0,1
+185,Buspirone,AR,1.0,1
+476,Chlorobenzilate,AR,1.0,0
+671,Tibolone,AR,1.0,0
+480,Propanil,AR,1.0,0
+665,Telithromycin,AR,1.0,0
+575,Hexachlorophene,AR,1.0,0
+645,Bromoxynil,AR,1.0,0
+506,Alachlor,AR,1.0,0
+917,Hycanthone,AR,1.0,0
+689,Clofarabine,AR,1.0,0
+677,Dipyrithione,AR,1.0,0
+744,Cilnidipine,AR,1.0,0
+599,4-Hydroxybenzophenone,AR,1.0,0
+561,"2,4-Dihydroxybenzophenone",AR,1.0,0
+563,4-Cumylphenol,AR,1.0,0
+628,1-(2-Chlorophenyl)-N-methyl-N-(1-methylpropyl)-3-isoquinolinecarboxamide,AR,1.0,0
+607,Fenthion,AR,1.0,0
+402,Bithionol,AR,1.0,0
+407,"3,4,5-Trichlorophenol",AR,1.0,0
+778,Dipentamethylenethiuram disulfide,AR,1.0,0
+783,Aranidipine,AR,1.0,0
+320,3-Hydroxybenzophenone,AR,1.0,0
+321,"4,4'-Dihydroxybiphenyl",AR,1.0,0
+796,Spiradoline,AR,1.0,0
+273,Pencycuron,AR,1.0,0
+808,Brotizolam,AR,1.0,0
+855,Deserpidine,AR,1.0,0
+349,"2,2'-Dihydroxy-6,6'-dinaphthyldisulfide",AR,1.0,0
+358,Canertinib,AR,1.0,0
+851,Rubitecan,AR,1.0,0
+328,Bisphenol E,AR,1.0,0
+882,Vatalanib,AR,1.0,0
+331,2-Methylphenanthrene,AR,1.0,0
+329,"1,1-Bis(4-hydroxyphenyl)-2,2-dichloroethylene",AR,1.0,0
+374,1-Nitropyrene,AR,1.0,0
+378,Etonitazene,AR,1.0,0
+278,Mestranol,AR,1.0,0
+802,Ziprasidone,AR,1.0,0
+701,Azelnidipine,AR,1.0,0
+837,Sertindole,AR,1.0,0
+836,Efonidipine,AR,1.0,0
+826,Cannabinol,AR,1.0,0
+367,Prazepam,AR,1.0,0
+286,Chloropropylate,AR,1.0,0
+946,Prednicarbate,AR,1.0,0
+283,Tetrachlorvinphos,AR,1.0,0
+444,"2,4-Decadienal",AR,1.0,0
+141,Chlorotrianisene,AR,1.0,0
+702,Nilvadipine,AR,1.0,0
+1031,Docebenone,AR,1.0,0
+42,N-Phenylmaleimide,AR,1.0,0
+1211,Hydrocortisone Valerate,AR,1.0,0
+1212,Bifonazole,AR,1.0,0
+162,Surinabant,AR,1.0,0
+231,Quinalphos,AR,1.0,0
+245,Equilin,AR,1.0,0
+246,Tolclofos-methyl,AR,1.0,0
+226,5-Nitroacenaphthene,AR,1.0,0
+164,Ethion,AR,1.0,0
+218,Thimerosal,AR,1.0,0
+47,Phenolphthalein,AR,1.0,0
+204,Nisoldipine,AR,1.0,0
+200,Amoxapine,AR,1.0,0
+181,Candesartan Cilexetil,AR,1.0,0
+179,4-Phenoxyphenol,AR,1.0,0
+182,Isofenphos,AR,1.0,0
+172,Kresoxim-Methyl,AR,1.0,0
+166,CP-122721,AR,1.0,0
+253,Ioxynil,AR,1.0,0
+174,Metconazole,AR,1.0,0
+44,"(2R,4S)-Ketoconazole",AR,1.0,0
+48,2-Aminophenol,AR,1.0,0
+431,Fenvalerate,AR,1.0,0
+133,"O,P'-Ddt",AR,1.0,0
+265,Dichlofenthion,AR,1.0,0
+83,Diniconazole,AR,1.0,0
+1151,Deslanoside,AR,1.0,0
+1155,Digitoxin,AR,1.0,0
+1159,Devazepide,AR,1.0,0
+1166,Allylestrenol,AR,1.0,0
+67,Flumetralin,AR,1.0,0
+1095,Ritanserin,AR,1.0,0
+137,Hexylresorcinol,AR,1.0,0
+131,Griseofulvin,AR,1.0,0
+53,Nelivaptan,AR,1.0,0
+125,"2,2',4,4'-Tetrahydroxybenzophenone",AR,1.0,0
+1124,5-Chloro-8-hydroxyquinoline,AR,1.0,0
+64,Butachlor,AR,1.0,0
+290,Naproxen,AR,0.0,10
+565,Resveratrol,AR,0.0,10
+587,Rhein,AR,0.0,10
+574,Dapsone,AR,0.0,10
+1269,beta-Cyclodextrin,AR,0.0,10
+3,Chloramphenicol,AR,0.0,10
+581,Zearalenone,AR,0.0,10
+1247,Estradiol Valerate,AR,0.0,10
+618,Linalool,AR,0.0,10
+1244,Ellagic Acid,AR,0.0,10
+620,Palmitic Acid,AR,0.0,10
+50,Pyridoxine,AR,0.0,10
+639,Nalidixic Acid,AR,0.0,10
+638,Lovastatin,AR,0.0,10
+637,Salicylic Acid,AR,0.0,10
+45,Methotrexate,AR,0.0,10
+517,Linoleic Acid,AR,0.0,10
+1213,Fulvestrant,AR,0.0,10
+521,Benzoic Acid,AR,0.0,10
+629,Daidzein,AR,0.0,10
+32,Phenol,AR,0.0,10
+627,Phenanthrene,AR,0.0,10
+533,Valproic Acid,AR,0.0,10
+535,Oleic Acid,AR,0.0,10
+524,Piperine,AR,0.0,10
+451,Nicotinamide,AR,0.0,10
+418,Camphor,AR,0.0,10
+699,Bosentan,AR,0.0,10
+250,Glycolic Acid,AR,0.0,10
+254,Betamethasone,AR,0.0,10
+1076,Memantine,AR,0.0,10
+566,Estrone,AR,0.0,10
+598,Nandrolone,AR,0.0,10
+960,Timolol,AR,0.0,10
+554,Estradiol,AR,0.0,10
+835,Glutathione Disulfide,AR,0.0,10
+1147,Cefazolin,AR,0.0,10
+653,Acrylamide,AR,0.0,10
+654,Melatonin,AR,0.0,10
+56,Simvastatin,AR,0.0,10
+1149,Gefitinib,AR,0.0,10
+503,1-Dodecanol,AR,0.0,10
+648,Imidazole,AR,0.0,10
+57,Sucrose,AR,0.0,10
+655,Quinoline,AR,0.0,10
+666,Erlotinib,AR,0.0,10
+499,Aspirin,AR,0.0,10
+657,Mannitol,AR,0.0,10
+465,Indomethacin,AR,0.0,10
+494,Probenecid,AR,0.0,10
+492,Biphenyl,AR,0.0,10
+468,Phthalimide,AR,0.0,10
+684,Capecitabine,AR,0.0,10
+491,Benzimidazole,AR,0.0,10
+683,Dutasteride,AR,0.0,10
+474,Nicotine,AR,0.0,10
+68,Dimethyl Sulfoxide,AR,0.0,10
+646,Genistein,AR,0.0,10
+1198,Adenosine,AR,0.0,10
+543,Vitamin E,AR,0.0,10
+547,Quinone,AR,0.0,10
+610,Malic Acid,AR,0.0,10
+552,Eugenol,AR,0.0,10
+600,Prednisone,AR,0.0,10
+1078,Minoxidil,AR,0.0,10
+1235,Enrofloxacin,AR,0.0,10
+289,Liothyronine,AR,0.0,10
+781,Atipamezole,AR,0.0,10
+106,Citric Acid,AR,0.0,10
+410,Dexamethasone,AR,0.0,10
+394,Aniline,AR,0.0,10
+1029,Amiodarone,AR,0.0,10
+99,Butyric Acid,AR,0.0,10
+740,Naltrexone,AR,0.0,10
+434,Vanillin,AR,0.0,10
+94,Benzophenone,AR,0.0,10
+438,Salicylamide,AR,0.0,10
+91,Resorcinol,AR,0.0,10
+90,Metronidazole,AR,0.0,10
+741,Naloxone,AR,0.0,10
+1087,Lidocaine,AR,0.0,10
+779,Cefoxitin,AR,0.0,10
+335,Azithromycin,AR,0.0,10
+108,Gallic Acid,AR,0.0,10
+1099,Pentylenetetrazole,AR,0.0,10
+342,Uracil,AR,0.0,10
+352,Cortisol,AR,0.0,10
+1105,Pentoxifylline,AR,0.0,10
+844,Fentanyl,AR,0.0,10
+1125,Exemestane,AR,0.0,10
+843,Heroin,AR,0.0,10
+1115,Ezetimibe,AR,0.0,10
+128,Phenytoin,AR,0.0,10
+1118,Losartan,AR,0.0,10
+1119,Rosiglitazone,AR,0.0,10
+814,Uric Acid,AR,0.0,10
+782,Febuxostat,AR,0.0,10
+118,Lactic Acid,AR,0.0,10
+406,Trimethoprim,AR,0.0,10
+449,Succinic Acid,AR,0.0,10
+399,Capsaicin,AR,0.0,10
+215,Thyroxine,AR,0.0,10
+111,Rutin,AR,0.0,10
+155,Emodin,AR,0.0,10
+310,Benzamide,AR,0.0,10
+318,Phenobarbital,AR,0.0,10
+892,Docetaxel,AR,0.0,10
+326,Isonicotinic Acid,AR,0.0,10
+883,Fludarabine,AR,0.0,10
+177,Albendazole,AR,0.0,10
+1003,Imipramine,AR,0.0,10
+1004,Isoproterenol,AR,0.0,10
+213,Cinnamic Acid,AR,0.0,10
+1040,Xylazine,AR,0.0,10
+1041,Verapamil,AR,0.0,10
+308,Testosterone,AR,0.0,10
+195,Atorvastatin,AR,0.0,10
+235,Letrozole,AR,0.0,10
+216,Biotin,AR,0.0,10
+1093,Risperidone,AR,0.0,10
+870,Lenalidomide,AR,0.0,10
+227,Riboflavin,AR,0.0,10
+1067,Niclosamide,AR,0.0,10
+1064,Nadide,AR,0.0,10
+333,Dihydrotestosterone,AR,0.0,10
+234,Anastrozole,AR,0.0,10
+233,Fluorescein,AR,0.0,10
+1026,Eplerenone,AR,0.0,10
+147,Naphthalene,AR,0.0,10
+1056,Phentolamine,AR,0.0,10
+1104,Pirfenidone,AR,0.0,9
+165,Triamcinolone,AR,0.0,9
+1158,Nandrolone Decanoate,AR,0.0,9
+1129,Pregabalin,AR,0.0,9
+1130,Zolpidem,AR,0.0,9
+150,Retinoic Acid,AR,0.0,9
+173,Testosterone Propionate,AR,0.0,9
+79,Acetamide,AR,0.0,9
+122,Carbamazepine,AR,0.0,9
+1150,Sorbinil,AR,0.0,9
+1127,Alizarin,AR,0.0,9
+158,Podophyllotoxin,AR,0.0,9
+1204,Enalapril,AR,0.0,9
+112,Raloxifene,AR,0.0,9
+36,Thalidomide,AR,0.0,9
+1271,Imiquimod,AR,0.0,9
+1167,Ketamine,AR,0.0,9
+157,Theobromine,AR,0.0,9
+1134,Estradiol Acetate,AR,0.0,9
+156,Caffeine,AR,0.0,9
+49,Thymol,AR,0.0,9
+1109,Oxymetazoline,AR,0.0,9
+1181,Permethrin,AR,0.0,9
+92,Acetophenone,AR,0.0,9
+1200,Pilocarpine,AR,0.0,9
+10,Azathioprine,AR,0.0,9
+95,Coumarin,AR,0.0,9
+1123,Andrographolide,AR,0.0,9
+1135,Adenine,AR,0.0,9
+1028,Alprenolol,AR,0.0,9
+579,Corticosterone,AR,0.0,9
+473,Propylene Glycol,AR,0.0,9
+538,Atrazine,AR,0.0,9
+827,Cortisone Acetate,AR,0.0,9
+987,Cyproheptadine,AR,0.0,9
+706,Fidarestat,AR,0.0,9
+737,Clenbuterol,AR,0.0,9
+469,Cinnamaldehyde,AR,0.0,9
+1009,Flumazenil,AR,0.0,9
+750,Adenosine Monophosphate,AR,0.0,9
+230,Benzothiazole,AR,0.0,9
+460,Meloxicam,AR,0.0,9
+428,Heptanoic Acid,AR,0.0,9
+395,Sulfamethoxazole,AR,0.0,9
+967,Cyclosporin A,AR,0.0,9
+259,Cortisone,AR,0.0,9
+514,Anthracene,AR,0.0,9
+1006,Gabapentin,AR,0.0,9
+823,Selumetinib,AR,0.0,9
+940,Hesperidin,AR,0.0,9
+330,Erythritol,AR,0.0,9
+974,Nadolol,AR,0.0,9
+360,Menthol,AR,0.0,9
+281,Formononetin,AR,0.0,9
+291,Leflunomide,AR,0.0,9
+621,Prednisolone,AR,0.0,9
+990,Epicatechin,AR,0.0,9
+518,Warfarin,AR,0.0,9
+635,Epigallocatechin Gallate,AR,0.0,9
+324,Chenodeoxycholic Acid,AR,0.0,9
+812,Hydroxyzine,AR,0.0,9
+810,Cypermethrin,AR,0.0,9
+1268,Guaiacol,AR,0.0,8
+614,Colchicine,AR,0.0,8
+436,Acetaminophen,AR,0.0,8
+1016,Dipyridamole,AR,0.0,8
+134,Fluconazole,AR,0.0,8
+1106,Pindolol,AR,0.0,8
+1019,Yohimbine,AR,0.0,8
+425,Saccharin,AR,0.0,8
+1032,Amantadine,AR,0.0,8
+183,Hydroquinone,AR,0.0,8
+440,Praziquantel,AR,0.0,8
+838,Medroxyprogesterone,AR,0.0,8
+139,Androstenedione,AR,0.0,8
+1030,Amiloride,AR,0.0,8
+207,Methylprednisolone,AR,0.0,8
+861,Ataluren,AR,0.0,8
+345,Isoflurane,AR,0.0,8
+728,Dinoprost,AR,0.0,8
+441,Stearic Acid,AR,0.0,8
+996,Bumetanide,AR,0.0,8
+746,Fumagillin,AR,0.0,8
+1240,Rauwolscine,AR,0.0,8
+249,Carvacrol,AR,0.0,8
+1250,Salmeterol Xinafoate,AR,0.0,8
+672,Voriconazole,AR,0.0,8
+1186,Terbinafine,AR,0.0,8
+419,Myristic Acid,AR,0.0,8
+951,Rolipram,AR,0.0,8
+591,1-Naphthylamine,AR,0.0,8
+1094,Riluzole,AR,0.0,8
+145,Theophylline,AR,0.0,8
+971,Ticlopidine,AR,0.0,8
+1192,Desloratadine,AR,0.0,8
+105,Acenaphthene,AR,0.0,8
+981,Dobutamine,AR,0.0,8
+1163,Aripiprazole,AR,0.0,8
+66,Palmitoleic Acid,AR,0.0,8
+685,Emtricitabine,AR,0.0,8
+1146,Alprazolam,AR,0.0,8
+1152,Lorazepam,AR,0.0,8
+398,Nifedipine,AR,0.0,8
+1233,Fluvoxamine,AR,0.0,8
+656,Cyclohexanol,AR,0.0,8
+942,Mometasone Furoate,AR,0.0,8
+943,Ofloxacin,AR,0.0,8
+29,Cotinine,AR,0.0,8
+467,Triamcinolone Acetonide,AR,0.0,8
+1194,Diltiazem,AR,0.0,8
+382,Psilocybin,AR,0.0,8
+403,P-Cresol,AR,0.0,8
+508,Furosemide,AR,0.0,7
+616,Acetazolamide,AR,0.0,7
+101,Geraniol,AR,0.0,7
+601,Hydrochlorothiazide,AR,0.0,7
+422,Lithocholic Acid,AR,0.0,7
+189,Topiramate,AR,0.0,7
+556,Sulfanilamide,AR,0.0,7
+426,2-Naphthol,AR,0.0,7

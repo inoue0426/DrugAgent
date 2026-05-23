@@ -1,0 +1,53 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "newdrugagent"
+version = "0.1.0"
+description = "Minimal uv environment for running app.py."
+requires-python = ">=3.11"
+dependencies = [
+  "autogen-agentchat==0.6.2",
+  "autogen-core==0.6.2",
+  "autogen-ext==0.6.2",
+  "azure-ai-inference==1.0.0b9",
+  "beautifulsoup4==4.13.4",
+  "boto3==1.39.3",
+  "botocore==1.39.3",
+  "deeppurpose==0.1.5",
+  "dgl==2.1.0",
+  "dgllife==0.3.2",
+  "diskcache==5.6.3",
+  "gradio==6.5.1",
+  "lxml==6.0.0",
+  "numpy==2.3.1",
+  "openai==1.93.1",
+  "pandas==2.3.0",
+  "pandas-flavor==0.8.1",
+  "python-dotenv==1.1.1",
+  "rdkit==2025.3.3",
+  "requests==2.32.4",
+  "scikit-learn==1.7.0",
+  "torch==2.4.1",
+  "tiktoken==0.9.0",
+  "descriptastorus @ git+https://github.com/bp-kelley/descriptastorus@9a190343bcd3cfd35142d378d952613bcac40797",
+  "faiss-cpu==1.12.0",
+  "gdown==5.2.0",
+]
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+py-modules = [
+  "DrugAgent",
+  "common_utils",
+  "config_utils",
+  "kg_utils",
+  "ml_utils",
+  "rag_utils",
+  "rag_validation_utils",
+  "token_usage",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
