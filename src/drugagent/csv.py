@@ -14,6 +14,8 @@ from typing import List, Optional
 from drugagent.config import ALL_EVIDENCE_AGENTS
 from drugagent.utils import config_id_from_enabled, normalize_enabled_agents
 
+OUTPUT_LABEL_MAP = {"Low": "Weak"}
+
 
 def ensure_csv_schema(filename: str, fields: List[str]) -> None:
     """Ensure a CSV file matches the desired schema, rewriting if needed.
@@ -127,10 +129,22 @@ def save_summary_to_csv(
         reasoning_effort: Reasoning effort token.
         save_version: Optional version override.
     """
+    def _normalize_output_label(label: str) -> str:
+        """Map internal labels to output labels for CSV exports.
+
+        Args:
+            label: Internal label string.
+
+        Returns:
+            Output label string.
+        """
+        return OUTPUT_LABEL_MAP.get(label, label)
+
     root = summary.get("root", {}) or {}
     fusion_label = str(root.get("fusion_label", "") or "").strip()
     if fusion_label == "" or fusion_label.upper() in {"NA", "N/A", "NONE", "NULL"}:
         return
+    fusion_label = _normalize_output_label(fusion_label)
     enabled_agents = root.get("enabled_agents") or ALL_EVIDENCE_AGENTS
     enabled_agents = normalize_enabled_agents(enabled_agents)
 
@@ -170,9 +184,9 @@ def save_summary_to_csv(
         "fusion_conf": root.get("fusion_conf", ""),
         "fusion_rule": root.get("fusion_rule", ""),
         "fusion_reason": root.get("fusion_reason", ""),
-        "ml_label": root.get("ml_label", ""),
-        "kg_label": root.get("kg_label", ""),
-        "rag_label": root.get("rag_label", ""),
+        "ml_label": _normalize_output_label(str(root.get("ml_label", "") or "")),
+        "kg_label": _normalize_output_label(str(root.get("kg_label", "") or "")),
+        "rag_label": _normalize_output_label(str(root.get("rag_label", "") or "")),
         "enabled_agents": ",".join(enabled_agents),
         "config": config_id_from_enabled(enabled_agents),
         "reasoning_effort": reasoning_effort or "",
