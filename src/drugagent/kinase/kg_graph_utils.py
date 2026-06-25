@@ -39,7 +39,7 @@ def rank_paths_structural(
     paths: List[List[Node]],
     hub_degree_cutoff: int = 300,
     avoid_hubs: bool = True,
-    lambda_val: float = 0.6
+    lambda_val: float = 0.6,
 ) -> List[Tuple[int, float]]:
     ranked = []
 
@@ -50,18 +50,24 @@ def rank_paths_structural(
         hub_hits = 0
         if avoid_hubs and len(path) > 2:
             for typ, val in path[1:-1]:
-                deg = idx.drug_degree.get(val, 0) if typ == "Drug" else idx.gene_degree.get(val, 0)
+                deg = (
+                    idx.drug_degree.get(val, 0)
+                    if typ == "Drug"
+                    else idx.gene_degree.get(val, 0)
+                )
                 if deg >= hub_degree_cutoff:
                     hub_hits += 1
 
-        score *= (lambda_val ** hub_hits)
+        score *= lambda_val**hub_hits
         ranked.append((i, score))
 
     ranked.sort(key=lambda x: x[1], reverse=True)
     return ranked
 
 
-def path_hub_meta(idx: KGIndex, path: List[Node], hub_degree_cutoff: int = 150) -> Dict[str, Any]:
+def path_hub_meta(
+    idx: KGIndex, path: List[Node], hub_degree_cutoff: int = 150
+) -> Dict[str, Any]:
     """
     Compute hub-related metadata for a path (used for LLM interpretation, not for pruning).
     """
@@ -71,7 +77,11 @@ def path_hub_meta(idx: KGIndex, path: List[Node], hub_degree_cutoff: int = 150) 
     hub_nodes: List[Dict[str, Any]] = []
 
     for typ, val in path[1:-1]:
-        deg = idx.drug_degree.get(val, 0) if typ == "Drug" else idx.gene_degree.get(val, 0)
+        deg = (
+            idx.drug_degree.get(val, 0)
+            if typ == "Drug"
+            else idx.gene_degree.get(val, 0)
+        )
         if deg > max_deg:
             max_deg = deg
             max_node = (typ, val)
@@ -84,7 +94,9 @@ def path_hub_meta(idx: KGIndex, path: List[Node], hub_degree_cutoff: int = 150) 
         "hub_hits": int(hub_hits),
         "hub_nodes": hub_nodes,
         "max_intermediate_degree": int(max_deg),
-        "max_degree_node": {"type": max_node[0], "value": max_node[1]} if max_node else None,
+        "max_degree_node": (
+            {"type": max_node[0], "value": max_node[1]} if max_node else None
+        ),
     }
 
 

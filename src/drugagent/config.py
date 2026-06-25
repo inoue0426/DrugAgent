@@ -9,11 +9,11 @@ import os
 from pathlib import Path
 from typing import Any, Dict, Optional
 
-from autogen_agentchat.conditions import MaxMessageTermination, TextMentionTermination
+from autogen_agentchat.conditions import (MaxMessageTermination,
+                                          TextMentionTermination)
 from openai import AzureOpenAI
 
 from config_utils import get_reasoning_settings, load_azure_openai_config
-
 
 
 def _env_path(env_key: str) -> Optional[Path]:
@@ -29,6 +29,8 @@ def _env_path(env_key: str) -> Optional[Path]:
     if not raw:
         return None
     return Path(raw)
+
+
 # -----------------------------------------------------------------------------
 # Configuration
 # -----------------------------------------------------------------------------
@@ -104,7 +106,11 @@ RAG_RESULTS_JSONL = _env_path("DRUGAGENT_RAG_RESULTS_JSONL") or _resolve_existin
 KG_VERSION = "kg_2026_02_26"
 SAVE_VERSION = "v1"
 
-BINARY_MODE = os.getenv("DRUGAGENT_BINARY_MODE", "").strip().lower() in {"1", "true", "yes"}
+BINARY_MODE = os.getenv("DRUGAGENT_BINARY_MODE", "").strip().lower() in {
+    "1",
+    "true",
+    "yes",
+}
 
 LABEL_ORDER = {
     "NONE": 0,

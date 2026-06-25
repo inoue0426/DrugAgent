@@ -112,6 +112,7 @@ async def _gather_evidence_parallel(
     Returns:
         Payload dict shaped for SummaryAgent.
     """
+
     async def run_tool(fn, *args, **kwargs):
         max_attempts = 8
         for attempt in range(1, max_attempts + 1):

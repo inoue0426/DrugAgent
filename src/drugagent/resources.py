@@ -16,7 +16,8 @@ try:
 except Exception:
     from rag_utils import load_faiss_index, load_metadata
 
-from drugagent.config import KG_PATH, RAG_INDEX_PATH, RAG_META_PATH, RAG_RESULTS_JSONL
+from drugagent.config import (KG_PATH, RAG_INDEX_PATH, RAG_META_PATH,
+                              RAG_RESULTS_JSONL)
 
 # -----------------------------------------------------------------------------
 # Local resource loaders
@@ -26,9 +27,7 @@ _KG_DF: Optional[pd.DataFrame] = None
 _RAG_INDEX = None
 _RAG_CHUNKS = None
 
-_DEFAULT_RAG_GDRIVE_URL = (
-    "https://drive.google.com/drive/folders/1w_QxsiG-Ee9y25JsH7iYxGVdT9G8ybvZ?usp=sharing"
-)
+_DEFAULT_RAG_GDRIVE_URL = "https://drive.google.com/drive/folders/1w_QxsiG-Ee9y25JsH7iYxGVdT9G8ybvZ?usp=sharing"
 
 
 def _get_kg_df() -> pd.DataFrame:
@@ -55,7 +54,9 @@ def _ensure_rag_assets(index_path: Path, meta_path: Path) -> None:
     if index_path.exists() and meta_path.exists():
         return
 
-    download_url = os.getenv("DRUGAGENT_RAG_GDRIVE_URL", _DEFAULT_RAG_GDRIVE_URL).strip()
+    download_url = os.getenv(
+        "DRUGAGENT_RAG_GDRIVE_URL", _DEFAULT_RAG_GDRIVE_URL
+    ).strip()
     if not download_url:
         raise FileNotFoundError(
             f"RAG assets not found: {index_path} and {meta_path}. "
@@ -70,12 +71,12 @@ def _ensure_rag_assets(index_path: Path, meta_path: Path) -> None:
             "Install gdown or provide local files."
         ) from exc
 
-    download_dir = Path(
-        os.getenv("DRUGAGENT_RAG_DOWNLOAD_DIR", str(index_path.parent))
-    )
+    download_dir = Path(os.getenv("DRUGAGENT_RAG_DOWNLOAD_DIR", str(index_path.parent)))
     download_dir.mkdir(parents=True, exist_ok=True)
     print(f"[RAG] Downloading assets from Google Drive into: {download_dir}")
-    gdown.download_folder(url=download_url, output=str(download_dir), quiet=False, use_cookies=False)
+    gdown.download_folder(
+        url=download_url, output=str(download_dir), quiet=False, use_cookies=False
+    )
 
     if not index_path.exists() or not meta_path.exists():
         raise FileNotFoundError(

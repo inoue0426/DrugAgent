@@ -2,25 +2,23 @@ from __future__ import annotations
 
 import contextlib
 import io
+import math
+import os
 from typing import List, Sequence, Tuple, Union
 
-import os
-import math
 import numpy as np
 
-from .ml_cache_utils import (
-    ML_LOOKUP_CACHE_DIR,
-    ML_SCORE_CACHE_DIR,
-    get_cached_sequence,
-    get_cached_smiles,
-    init_cache,
-)
+from .ml_cache_utils import (ML_LOOKUP_CACHE_DIR, ML_SCORE_CACHE_DIR,
+                             get_cached_sequence, get_cached_smiles,
+                             init_cache)
 
 # Define a type alias for clarity
 ResultType = List[Union[str, float]]
 
 # Global cached pretrained net
 _PRETRAINED_NET = None
+
+
 def _prepare_ml_runtime() -> None:
     """Configure runtime settings to reduce kernel crashes.
 
@@ -161,7 +159,9 @@ def get_dti_score(
                     pKd_cached = float(score_cache[cache_key])
                 except Exception:
                     pKd_cached = float("nan")
-                cls = pKd_to_class(pKd_cached, t_weak=t_weak, t_strong=t_strong, binary=binary_class)
+                cls = pKd_to_class(
+                    pKd_cached, t_weak=t_weak, t_strong=t_strong, binary=binary_class
+                )
                 kdM = pKd_to_KdM(pKd_cached) if not math.isnan(pKd_cached) else None
                 kd_nM = kdM * 1e9 if kdM is not None else None
                 result[i] = [
@@ -204,8 +204,9 @@ def get_dti_score(
 
             # suppress DeepPurpose stdout/stderr
             try:
-                with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(
-                    io.StringIO()
+                with (
+                    contextlib.redirect_stdout(io.StringIO()),
+                    contextlib.redirect_stderr(io.StringIO()),
                 ):
                     preds = models.virtual_screening(
                         drugs,
@@ -232,7 +233,9 @@ def get_dti_score(
                     f"Prediction count mismatch: expected {len(indices)}, got {arr.shape[0]}"
                 )
 
-            for idx, dname, tname, raw_p in zip(indices, drug_names_uncached, target_names_uncached, arr):
+            for idx, dname, tname, raw_p in zip(
+                indices, drug_names_uncached, target_names_uncached, arr
+            ):
                 try:
                     pKd = float(raw_p)
                 except Exception:
@@ -246,7 +249,13 @@ def get_dti_score(
                 # store pKd in cache (so thresholding can be changed later)
                 score_cache[cache_key] = pKd
 
-                cls = pKd_to_class(pKd, t_weak=t_weak, t_strong=t_strong, binary=binary_class) if not math.isnan(pKd) else "NA"
+                cls = (
+                    pKd_to_class(
+                        pKd, t_weak=t_weak, t_strong=t_strong, binary=binary_class
+                    )
+                    if not math.isnan(pKd)
+                    else "NA"
+                )
                 kdM = pKd_to_KdM(pKd) if not math.isnan(pKd) else None
                 kd_nM = kdM * 1e9 if kdM is not None else None
 

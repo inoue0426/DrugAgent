@@ -8,6 +8,7 @@ from typing import Any, Dict, List, Optional
 
 from openai import AzureOpenAI
 
+
 def _resolve_repo_root() -> Path:
     """Resolve the repository root by walking up to pyproject.toml."""
     current = Path(__file__).resolve()
@@ -95,7 +96,9 @@ def llm_call_azure(
 
     try:
         content = response.choices[0].message.content
-        raw_text = json.dumps(content) if isinstance(content, (dict, list)) else str(content)
+        raw_text = (
+            json.dumps(content) if isinstance(content, (dict, list)) else str(content)
+        )
         return raw_text, usage
     except Exception:
         return str(response), usage
@@ -149,7 +152,10 @@ Return the JSON object only (no extra commentary).
         usage.add(
             u,
             tag="edge_summary",
-            meta={"drug": edge_info.get("drug_norm"), "gene": edge_info.get("gene_norm")},
+            meta={
+                "drug": edge_info.get("drug_norm"),
+                "gene": edge_info.get("gene_norm"),
+            },
         )
 
     try:
@@ -206,8 +212,7 @@ def summarize_path_with_azure(
             )
         )
     user = (
-        "### Edges:\n" + "\n".join(edges_text)
-        + '\n\nReturn JSON ONLY:\n'
+        "### Edges:\n" + "\n".join(edges_text) + "\n\nReturn JSON ONLY:\n"
         '{"path_summary":"...", "key_edges":[1,2], "key_intermediates":["GENE1"], "process_tags":["signaling"], "confidence":0.0}'
     )
 
@@ -299,12 +304,12 @@ Output schema (JSON only):
     if binary_class:
         system = system.replace(
             '(multi-class) or "Active|Inactive" (binary)',
-            '(binary only: Active/Inactive)',
+            "(binary only: Active/Inactive)",
         )
     else:
         system = system.replace(
             '(multi-class) or "Active|Inactive" (binary)',
-            '(multi-class only: Strong/Moderate/Weak/Insufficient)',
+            "(multi-class only: Strong/Moderate/Weak/Insufficient)",
         )
 
     ctx_lines = []
@@ -316,7 +321,10 @@ Output schema (JSON only):
         hub_nodes = hub.get("hub_nodes", []) or []
 
         hub_nodes_str = ", ".join(
-            [f'{x.get("type")}:{x.get("value")}({x.get("degree")})' for x in hub_nodes[:5]]
+            [
+                f'{x.get("type")}:{x.get("value")}({x.get("degree")})'
+                for x in hub_nodes[:5]
+            ]
         )
         if len(hub_nodes) > 5:
             hub_nodes_str += ", ..."

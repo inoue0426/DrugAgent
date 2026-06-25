@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from typing import Dict
 
-
 PLAUSIBILITY_SYSTEM_PROMPT = """
 You are a careful biomedical evaluator.
 
@@ -64,7 +63,6 @@ Gene: {gene_name}
 Input summary:
 {summary}
 """.strip()
-
 
 
 FAITHFULNESS_SYSTEM_PROMPT = """
@@ -136,7 +134,6 @@ RAG evidence:
 Fusion explanation:
 {fusion_reason}
 """.strip()
-
 
 
 FLOW_NOTES: Dict[str, str] = {

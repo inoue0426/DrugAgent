@@ -53,7 +53,7 @@ def load_azure_openai_config() -> Dict[str, str]:
         "embedding_api_version": os.getenv("AZURE_OPENAI_EMBEDDING_API_VERSION"),
         "embedding_endpoint": os.getenv("AZURE_OPENAI_EMBEDDING_ENDPOINT"),
         "embedding_api_key": os.getenv("AZURE_OPENAI_EMBEDDING_API_KEY"),
-        "claude_endpoint": os.getenv("CLAUDE_ENDPOINT")
+        "claude_endpoint": os.getenv("CLAUDE_ENDPOINT"),
     }
 
     # Raise if required keys are missing.

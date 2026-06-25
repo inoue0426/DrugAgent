@@ -14,28 +14,28 @@ import os
 import random
 import re
 import tempfile
+from dataclasses import dataclass, field
 from itertools import combinations
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Tuple
+
 import pandas as pd
 from autogen_agentchat.agents import AssistantAgent
-from autogen_agentchat.conditions import MaxMessageTermination, TextMentionTermination
-from autogen_agentchat.messages import (
-    BaseChatMessage,
-    ToolCallExecutionEvent,
-    ToolCallRequestEvent,
-    ToolCallSummaryMessage,
-)
+from autogen_agentchat.conditions import (MaxMessageTermination,
+                                          TextMentionTermination)
+from autogen_agentchat.messages import (BaseChatMessage,
+                                        ToolCallExecutionEvent,
+                                        ToolCallRequestEvent,
+                                        ToolCallSummaryMessage)
 from autogen_agentchat.teams import SelectorGroupChat
-from autogen_ext.models.openai import AzureOpenAIChatCompletionClient, _model_info
+from autogen_ext.models.openai import (AzureOpenAIChatCompletionClient,
+                                       _model_info)
 from openai import AzureOpenAI, RateLimitError
 
 from config_utils import get_reasoning_settings, load_azure_openai_config
 from kg_utils import predict_dti_strength_full_pipeline
 from ml_utils import get_dti_score as ml_raw_score
 from rag_utils import load_faiss_index, load_metadata, run_dti_rag
-
-from dataclasses import dataclass, field
 
 
 def _resolve_repo_root() -> Path:
@@ -56,6 +56,7 @@ def _env_path(env_key: str) -> Optional[Path]:
 
 
 _REPO_ROOT = _resolve_repo_root()
+
 
 @dataclass
 class TokenAgg:
@@ -92,7 +93,12 @@ class TokenAgg:
         self.completion_tokens += c
         self.total_tokens += t
         self.calls += int(d.get("calls", 1) or 1)
-        self.breakdown[name] = {"prompt_tokens": p, "completion_tokens": c, "total_tokens": t}
+        self.breakdown[name] = {
+            "prompt_tokens": p,
+            "completion_tokens": c,
+            "total_tokens": t,
+        }
+
 
 # -----------------------------------------------------------------------------
 # Configuration
@@ -117,6 +123,7 @@ def _get_reasoning_settings() -> Optional[Dict[str, Any]]:
         _REASONING_SETTINGS = get_reasoning_settings()
     return _REASONING_SETTINGS
 
+
 KG_PATH = _env_path("DRUGAGENT_KG_PATH") or _REPO_ROOT / "data" / "KG+BDB.csv.gz"
 RAG_INDEX_PATH = _env_path("DRUGAGENT_RAG_INDEX_PATH") or _REPO_ROOT / "rag_index.faiss"
 RAG_META_PATH = _env_path("DRUGAGENT_RAG_META_PATH") or _REPO_ROOT / "rag_metadata.json"
@@ -139,6 +146,7 @@ ALL_EVIDENCE_AGENTS = ["ML", "KG", "RAG"]
 
 _tool_client: AzureOpenAI | None = None
 
+
 def _get_tool_client() -> AzureOpenAI:
     global _tool_client
     if _tool_client is None:
@@ -149,6 +157,7 @@ def _get_tool_client() -> AzureOpenAI:
             api_version=cfg["api_version"],
         )
     return _tool_client
+
 
 # Configure logging
 logging.getLogger("autogen_core").setLevel(logging.WARNING)
@@ -274,7 +283,11 @@ def _is_rate_limit_exception(exc: Exception) -> bool:
         return True
     # Autogen can wrap errors or only leave a message; handle both.
     msg = str(exc)
-    return ("RateLimit" in msg) or ("RateLimitReached" in msg) or ("Error code: 429" in msg)
+    return (
+        ("RateLimit" in msg)
+        or ("RateLimitReached" in msg)
+        or ("Error code: 429" in msg)
+    )
 
 
 def _retry_after_seconds(exc: Exception, default: float = 3.0) -> float:
@@ -300,7 +313,7 @@ def _retry_after_seconds(exc: Exception, default: float = 3.0) -> float:
 async def _sleep_with_backoff(exc: Exception, attempt: int) -> None:
     # Honor retry-after and use exponential backoff with jitter to avoid collisions.
     base_wait = _retry_after_seconds(exc, default=3.0)
-    exp_wait = (1.7 ** attempt)
+    exp_wait = 1.7**attempt
     wait = max(base_wait, exp_wait) + random.uniform(0, 0.75)
     await asyncio.sleep(wait)
 
@@ -337,6 +350,7 @@ def _get_rag_resources() -> Tuple[Any, Any]:
 # -----------------------------------------------------------------------------
 # Tool wrappers (local KG/ML/RAG)
 # -----------------------------------------------------------------------------
+
 
 def ml_score(drug: str, target: str) -> Dict[str, Any]:
     result = ml_raw_score(drug, target)
@@ -427,7 +441,7 @@ def kg_score(drug: str, target: str) -> Dict[str, Any]:
         "reason": json.dumps(judgement, ensure_ascii=True),
         "label": label_raw,
         "kg_direct": _is_direct_kg_path(result),
-        "token_usage": tok
+        "token_usage": tok,
     }
 
 
@@ -485,7 +499,7 @@ def rag_score(drug: str, target: str) -> Dict[str, Any]:
         "reason": json.dumps(obj, ensure_ascii=True),
         "label": label_raw,
         "pmc_ids": pmc_ids,
-        "token_usage": tok
+        "token_usage": tok,
     }
 
 
@@ -679,7 +693,7 @@ def _build_evidence_payload(
                 "reason": kg_result.get("reason", ""),
                 "label": kg_result.get("label", ""),
                 "kg_direct": kg_result.get("kg_direct", False),
-                "token_usage": kg_result.get("token_usage", {}),   # Added.
+                "token_usage": kg_result.get("token_usage", {}),  # Added.
             }
         except Exception as exc:
             payload["kg_evidence"] = {
@@ -687,7 +701,7 @@ def _build_evidence_payload(
                 "target": gene,
                 "reason": f"KG evidence collection failed: {exc}",
                 "label": "NONE",
-                "token_usage": {}
+                "token_usage": {},
             }
 
     if "RAG" in enabled_sources:
@@ -708,13 +722,14 @@ def _build_evidence_payload(
                 "reason": f"RAG evidence collection failed: {exc}",
                 "label": "NONE",
                 "pmc_ids": [],
-                "token_usage": {}
+                "token_usage": {},
             }
 
     return payload
 
 
 _summary_clients: Dict[Optional[str], AzureOpenAI] = {}
+
 
 def _make_azure_client_with_reasoning(reasoning_effort: Optional[str]) -> AzureOpenAI:
     # NOTE: AzureOpenAI.__init__ does NOT accept a 'reasoning' kwarg.
@@ -725,6 +740,7 @@ def _make_azure_client_with_reasoning(reasoning_effort: Optional[str]) -> AzureO
         azure_endpoint=cfg["endpoint"],
         api_version=cfg["api_version"],
     )
+
 
 def _get_summary_client(reasoning_effort: Optional[str] = None) -> AzureOpenAI:
     """
@@ -738,6 +754,7 @@ def _get_summary_client(reasoning_effort: Optional[str] = None) -> AzureOpenAI:
         client = _make_azure_client_with_reasoning(reasoning_effort)
         _summary_clients[key] = client
     return client
+
 
 async def _run_summary_with_evidence(
     payload: Dict[str, Any],
@@ -843,7 +860,10 @@ async def _run_summary_with_evidence(
         # chat.completions style
         if hasattr(response, "choices") and response.choices:
             choice0 = response.choices[0]
-            if hasattr(choice0, "message") and getattr(choice0.message, "content", None) is not None:
+            if (
+                hasattr(choice0, "message")
+                and getattr(choice0.message, "content", None) is not None
+            ):
                 content = choice0.message.content or ""
             else:
                 try:
@@ -852,14 +872,22 @@ async def _run_summary_with_evidence(
                     content = ""
         else:
             # Responses API style
-            out = getattr(response, "output", None) or getattr(response, "outputs", None)
+            out = getattr(response, "output", None) or getattr(
+                response, "outputs", None
+            )
             if out and isinstance(out, (list, tuple)) and len(out) > 0:
                 first = out[0]
                 if isinstance(first, dict):
-                    cont = first.get("content") or first.get("body") or first.get("text")
+                    cont = (
+                        first.get("content") or first.get("body") or first.get("text")
+                    )
                     if isinstance(cont, list) and cont:
                         if isinstance(cont[0], dict):
-                            text = cont[0].get("text") or cont[0].get("value") or cont[0].get("content")
+                            text = (
+                                cont[0].get("text")
+                                or cont[0].get("value")
+                                or cont[0].get("content")
+                            )
                             if text:
                                 content = text
                         elif isinstance(cont[0], str):
@@ -867,7 +895,9 @@ async def _run_summary_with_evidence(
                     elif isinstance(cont, str):
                         content = cont
                 else:
-                    text_attr = getattr(first, "text", None) or getattr(first, "content", None)
+                    text_attr = getattr(first, "text", None) or getattr(
+                        first, "content", None
+                    )
                     if isinstance(text_attr, str):
                         content = text_attr
             if not content and hasattr(response, "output_text"):
@@ -899,7 +929,10 @@ async def _run_summary_with_evidence(
             obj["_input_messages"] = messages
         except Exception:
             # If messages unavailable (edge-case), at least record a minimal representation
-            obj["_input_messages"] = [{"role": "system", "content": system_message}, {"role": "user", "content": json.dumps(payload)}]
+            obj["_input_messages"] = [
+                {"role": "system", "content": system_message},
+                {"role": "user", "content": json.dumps(payload)},
+            ]
     except Exception:
         # attach best-effort; never raise here
         pass
@@ -927,7 +960,11 @@ async def _run_summary_with_evidence(
     # Added: summary token usage if available.
     usage = getattr(response, "usage", None)
     if usage is None:
-        usage = getattr(response, "meta", None) or getattr(response, "output_meta", None) or getattr(response, "raw", None)
+        usage = (
+            getattr(response, "meta", None)
+            or getattr(response, "output_meta", None)
+            or getattr(response, "raw", None)
+        )
 
     obj["_token_usage_summary"] = {
         "prompt_tokens": int(getattr(usage, "prompt_tokens", 0) or 0),
@@ -936,6 +973,7 @@ async def _run_summary_with_evidence(
         "calls": 1,
     }
     return obj
+
 
 # -----------------------------------------------------------------------------
 # Fusion rules (from 9_DrugAgent.ipynb)
@@ -1043,6 +1081,7 @@ def make_reviewer_friendly_rules_v2() -> Tuple[Rule, ...]:
             "LOW",
         ),
     )
+
 
 def _median_label2(a: str, b: str) -> str:
     """
@@ -1179,6 +1218,7 @@ def _extract_label_from_text(text: str) -> str:
     value = re.split(r"[\.;,\)\]]", value, maxsplit=1)[0].strip()
     return value
 
+
 def attach_evidence_metadata(summary: dict, payload: dict) -> None:
     """Attach tool-derived evidence metadata into summary.root for deterministic explanation."""
     if not isinstance(summary, dict):
@@ -1202,7 +1242,7 @@ def attach_evidence_metadata(summary: dict, payload: dict) -> None:
     agg = TokenAgg()
     agg.add_dict("kg", (kg.get("token_usage") or {}))
     agg.add_dict("rag", (rag.get("token_usage") or {}))
-    agg.add_dict("ml", (ml.get("token_usage") or {}))   # Added.
+    agg.add_dict("ml", (ml.get("token_usage") or {}))  # Added.
     agg.add_dict("summary", (summary.get("_token_usage_summary") or {}))
     agg.add_dict("addendum", (root.get("_token_usage_addendum") or {}))
 
@@ -1214,18 +1254,24 @@ def attach_evidence_metadata(summary: dict, payload: dict) -> None:
         "breakdown": agg.breakdown,
     }
 
+
 def _extract_label_from_reasoning_text(text: str) -> Optional[str]:
     """Extract an explicit label from summary_reasoning, if present."""
     if not text:
         return None
     # Look for common label tokens (Strong/Moderate/Weak/Low, etc.).
-    m = re.search(r"\b(Strong|Moderate|Weak|Low|Insufficient|NONE|None)\b", text, flags=re.IGNORECASE)
+    m = re.search(
+        r"\b(Strong|Moderate|Weak|Low|Insufficient|NONE|None)\b",
+        text,
+        flags=re.IGNORECASE,
+    )
     if m:
         lbl = m.group(1)
         # normalize to fusion labels
         norm = _normalize_fusion_label(lbl)
         return norm
     return None
+
 
 def _compute_alignment_status(summary: dict) -> str:
     """
@@ -1243,7 +1289,11 @@ def _compute_alignment_status(summary: dict) -> str:
     if llm_label == fusion_label:
         return "aligned"
     # near miss: e.g., LLM said "Weak" but mapping to "Low" etc.
-    if llm_label in {"Low", "Moderate", "Strong"} and fusion_label in {"Low", "Moderate", "Strong"}:
+    if llm_label in {"Low", "Moderate", "Strong"} and fusion_label in {
+        "Low",
+        "Moderate",
+        "Strong",
+    }:
         # ordinal distance check (Low<->Strong is bigger than Low<->Moderate)
         ord_map = {"Low": 0, "Moderate": 1, "Strong": 2}
         try:
@@ -1255,6 +1305,7 @@ def _compute_alignment_status(summary: dict) -> str:
         except Exception:
             return "conflict"
     return "conflict"
+
 
 def apply_rule_based_explanation(summary: dict) -> None:
     """Generate deterministic explanation text that strictly follows the fired fusion rule.
@@ -1341,7 +1392,10 @@ def apply_rule_based_explanation(summary: dict) -> None:
     if pkd is not None and str(pkd).strip() != "":
         anchors.append(f"ML pKd={pkd}")
     if pmc_ids:
-        anchors.append(f"RAG PMCIDs={','.join(map(str, pmc_ids[:20]))}" + ("..." if len(pmc_ids) > 20 else ""))
+        anchors.append(
+            f"RAG PMCIDs={','.join(map(str, pmc_ids[:20]))}"
+            + ("..." if len(pmc_ids) > 20 else "")
+        )
 
     if anchors:
         core = core + " Evidence anchors: " + " | ".join(anchors) + "."
@@ -1366,17 +1420,23 @@ def apply_rule_based_explanation(summary: dict) -> None:
         if root.get("fusion_conf", "") in {"HIGH", "MEDIUM"}:
             root["fusion_conf"] = "MEDIUM"
         # annotate reason
-        root["fusion_reason"] = (str(root.get("fusion_reason", "")) + f" NOTE: LLM summary conflicts with fusion result (alignment={alignment}).").strip()
+        root["fusion_reason"] = (
+            str(root.get("fusion_reason", ""))
+            + f" NOTE: LLM summary conflicts with fusion result (alignment={alignment})."
+        ).strip()
     elif alignment == "near_miss":
-        root["fusion_reason"] = (str(root.get("fusion_reason", "")) + f" NOTE: LLM and fusion nearly agree (alignment={alignment}).").strip()
+        root["fusion_reason"] = (
+            str(root.get("fusion_reason", ""))
+            + f" NOTE: LLM and fusion nearly agree (alignment={alignment})."
+        ).strip()
 
     summary["root"] = root
-
 
 
 def _get_explainer_client() -> AzureOpenAI:
     # Reuse the summary client.
     return _get_summary_client()
+
 
 async def _generate_rule_aligned_addendum(summary: dict) -> str:
     """
@@ -1401,7 +1461,7 @@ async def _generate_rule_aligned_addendum(summary: dict) -> str:
             "ml_reason": (root.get("_evidence", {}) or {}).get("ml_reason", ""),
             "kg_reason": (root.get("_evidence", {}) or {}).get("kg_reason", ""),
             "rag_reason": (root.get("_evidence", {}) or {}).get("rag_reason", ""),
-        }
+        },
     }
 
     system = """
@@ -1437,6 +1497,7 @@ Output ONLY plain text (no JSON, no markdown).
     }
     return addendum, tok
 
+
 def apply_final_decision(summary: dict, enabled_agents: List[str]) -> None:
     """Apply deterministic fusion logic to the reasoning tree (supports 1/2/3 sources)."""
     if not isinstance(summary, dict):
@@ -1446,7 +1507,9 @@ def apply_final_decision(summary: dict, enabled_agents: List[str]) -> None:
     # --- extract raw labels/status from summary tree ---
     ml_label_raw, ml_status = _get_source_label_with_status(root, "ML", enabled_agents)
     kg_label_raw, kg_status = _get_source_label_with_status(root, "KG", enabled_agents)
-    rag_label_raw, rag_status = _get_source_label_with_status(root, "RAG", enabled_agents)
+    rag_label_raw, rag_status = _get_source_label_with_status(
+        root, "RAG", enabled_agents
+    )
 
     def to_fusion(label: Optional[str], status: str) -> Optional[str]:
         if status == "disabled":
@@ -1465,11 +1528,17 @@ def apply_final_decision(summary: dict, enabled_agents: List[str]) -> None:
     # record enabled/disabled
     enabled_agents = normalize_enabled_agents(enabled_agents)
     root["enabled_agents"] = enabled_agents
-    root["disabled_agents"] = [a for a in ALL_EVIDENCE_AGENTS if a not in enabled_agents]
+    root["disabled_agents"] = [
+        a for a in ALL_EVIDENCE_AGENTS if a not in enabled_agents
+    ]
 
     # build available sources list in canonical order
     src_to_label = {"ML": ml_label, "KG": kg_label, "RAG": rag_label}
-    available = [(s, src_to_label[s]) for s in ALL_EVIDENCE_AGENTS if s in enabled_agents and src_to_label[s]]
+    available = [
+        (s, src_to_label[s])
+        for s in ALL_EVIDENCE_AGENTS
+        if s in enabled_agents and src_to_label[s]
+    ]
 
     root["fusion_sources"] = [s for s, _ in available]  # <- helpful for review
 
@@ -1616,6 +1685,7 @@ def _normalize_reasoning_token(reasoning_effort: Optional[str]) -> str:
     # fallback: remove problematic chars
     return re.sub(r"[^0-9a-zA-Z_-]", "_", token)
 
+
 def _summary_filename_for_config(
     enabled_agents: List[str], model: Optional[str], reasoning_effort: Optional[str]
 ) -> str:
@@ -1625,6 +1695,7 @@ def _summary_filename_for_config(
     reason_token = _normalize_reasoning_token(reasoning_effort)
     os.makedirs("output", exist_ok=True)
     return f"output/summary_{config_id}_{model_part}_{reason_token}.csv"
+
 
 def save_summary_to_csv(
     summary: dict, ablation: str, model: Optional[str], reasoning_effort: Optional[str]
@@ -1653,7 +1724,7 @@ def save_summary_to_csv(
         "reasoning_alignment",
         "token_usage",
         "fusion_sources",
-        "input_payload"
+        "input_payload",
     ]
 
     ensure_csv_schema(filename, fields)
@@ -1676,7 +1747,7 @@ def save_summary_to_csv(
     }
 
     # truncate input payload for CSV
-    input_payload_obj = (summary.get("_input_payload") or {})
+    input_payload_obj = summary.get("_input_payload") or {}
     try:
         input_payload_json = json.dumps(input_payload_obj, ensure_ascii=True)
         if len(input_payload_json) > 2000:
@@ -1685,14 +1756,16 @@ def save_summary_to_csv(
         input_payload_json = ""
     row["input_payload"] = input_payload_json
 
-    token_total = (root.get("token_usage_total") or {})
+    token_total = root.get("token_usage_total") or {}
     row["token_usage"] = json.dumps(token_total, ensure_ascii=True)
 
     file_exists = os.path.exists(filename) and os.path.getsize(filename) > 0
 
     # atomic create when file absent
     if not file_exists:
-        with tempfile.NamedTemporaryFile("w", delete=False, encoding="utf-8", newline="") as tmp:
+        with tempfile.NamedTemporaryFile(
+            "w", delete=False, encoding="utf-8", newline=""
+        ) as tmp:
             writer = csv.DictWriter(tmp, fieldnames=fields)
             writer.writeheader()
             writer.writerow(row)
@@ -1703,6 +1776,7 @@ def save_summary_to_csv(
         with open(filename, "a", newline="", encoding="utf-8") as f:
             writer = csv.DictWriter(f, fieldnames=fields)
             writer.writerow(row)
+
 
 def check_already_processed(
     drug: str,
@@ -1740,7 +1814,9 @@ def check_already_processed(
 # -----------------------------------------------------------------------------
 
 
-def build_agents(model_client, ablation: str = "full", use_planning_agent: bool = False) -> Dict[str, AssistantAgent]:
+def build_agents(
+    model_client, ablation: str = "full", use_planning_agent: bool = False
+) -> Dict[str, AssistantAgent]:
     """Build Autogen agents wired to local tool wrappers."""
     enabled_sources = normalize_enabled_agents(_resolve_enabled_sources(ablation))
 
@@ -1837,7 +1913,9 @@ def _build_planning_system_message(enabled_sources: List[str]) -> str:
         agent_lines.append("- MLAgent: Performs machine learning predictions.")
     if "KG" in enabled_sources:
         agent_lines.append("- KGAgent: Calculates scores from knowledge graph data.")
-    agent_lines.append("- SummaryAgent: Synthesizes findings and produces the final report.")
+    agent_lines.append(
+        "- SummaryAgent: Synthesizes findings and produces the final report."
+    )
     team_agents = "\n".join(agent_lines)
 
     return f"""
@@ -1904,7 +1982,10 @@ def create_model_client(model_type: str, model_name: Optional[str] = None):
 # Fast version
 # ------
 
-async def _gather_evidence_parallel(drug: str, gene: str, enabled_sources: List[str]) -> Dict[str, Any]:
+
+async def _gather_evidence_parallel(
+    drug: str, gene: str, enabled_sources: List[str]
+) -> Dict[str, Any]:
     async def run_tool(fn, *args):
         max_attempts = 8
         for attempt in range(1, max_attempts + 1):
@@ -1931,11 +2012,29 @@ async def _gather_evidence_parallel(drug: str, gene: str, enabled_sources: List[
         except Exception as exc:
             # Tool failure fallback (aligned with _build_evidence_payload behavior).
             if key == "ml_evidence":
-                res = {"drug": drug, "target": gene, "reason": f"ML failed: {exc}", "label": "", "pKd": None}
+                res = {
+                    "drug": drug,
+                    "target": gene,
+                    "reason": f"ML failed: {exc}",
+                    "label": "",
+                    "pKd": None,
+                }
             elif key == "kg_evidence":
-                res = {"drug": drug, "target": gene, "reason": f"KG failed: {exc}", "label": "NONE", "kg_direct": False}
+                res = {
+                    "drug": drug,
+                    "target": gene,
+                    "reason": f"KG failed: {exc}",
+                    "label": "NONE",
+                    "kg_direct": False,
+                }
             else:
-                res = {"drug": drug, "target": gene, "reason": f"RAG failed: {exc}", "label": "NONE", "pmc_ids": []}
+                res = {
+                    "drug": drug,
+                    "target": gene,
+                    "reason": f"RAG failed: {exc}",
+                    "label": "NONE",
+                    "pmc_ids": [],
+                }
 
         # Shape payload to match the summary input schema.
         if key == "ml_evidence":
@@ -1953,7 +2052,7 @@ async def _gather_evidence_parallel(drug: str, gene: str, enabled_sources: List[
                 "reason": res.get("reason", ""),
                 "label": res.get("label", ""),
                 "kg_direct": bool(res.get("kg_direct", False)),
-                "token_usage": res.get("token_usage", {}),   # Added.
+                "token_usage": res.get("token_usage", {}),  # Added.
             }
         else:
             payload[key] = {
@@ -1962,7 +2061,7 @@ async def _gather_evidence_parallel(drug: str, gene: str, enabled_sources: List[
                 "reason": res.get("reason", ""),
                 "label": res.get("label", ""),
                 "pmc_ids": res.get("pmc_ids", []) or [],
-                "token_usage": res.get("token_usage", {}),   # Added.
+                "token_usage": res.get("token_usage", {}),  # Added.
             }
 
     return payload
@@ -1996,7 +2095,9 @@ async def chat_with_agents_and_summarize(
             drug, gene, ablation, model, enabled_sources, reasoning_effort
         ):
             if verbose:
-                print(f"[SKIP] Already processed: {drug}-{gene} for {ablation} ({model})")
+                print(
+                    f"[SKIP] Already processed: {drug}-{gene} for {ablation} ({model})"
+                )
             return None
 
         payload = await _gather_evidence_parallel(drug, gene, enabled_sources)
@@ -2013,7 +2114,9 @@ async def chat_with_agents_and_summarize(
             addendum, add_tok = await _generate_rule_aligned_addendum(summary)
             if addendum:
                 root = summary.get("root", {}) or {}
-                root["summary_reasoning"] = (root.get("fusion_explanation", "") + " " + addendum).strip()
+                root["summary_reasoning"] = (
+                    root.get("fusion_explanation", "") + " " + addendum
+                ).strip()
                 root["_token_usage_addendum"] = add_tok
                 summary["root"] = root
 
@@ -2023,14 +2126,18 @@ async def chat_with_agents_and_summarize(
             pass
 
         if cache_enabled:
-            save_summary_to_csv(summary, ablation=ablation, model=model, reasoning_effort=reasoning_effort)
+            save_summary_to_csv(
+                summary,
+                ablation=ablation,
+                model=model,
+                reasoning_effort=reasoning_effort,
+            )
         return summary
     else:
         if active_agents is None:
             raise ValueError("active_agents must be provided")
         if model_client is None:
             raise ValueError("model_client must be provided")
-
 
     if cache_enabled and check_already_processed(
         drug, gene, ablation, model, enabled_agents, reasoning_effort
@@ -2044,7 +2151,8 @@ async def chat_with_agents_and_summarize(
         model_client=model_client,
         termination_condition=termination,
         selector_prompt=(
-            selector_prompt_with_planner if any(getattr(a, "name", "") == "PlanningAgent" for a in active_agents)
+            selector_prompt_with_planner
+            if any(getattr(a, "name", "") == "PlanningAgent" for a in active_agents)
             else selector_prompt_no_planner
         ),
         allow_repeated_speaker=False,
@@ -2087,7 +2195,9 @@ async def chat_with_agents_and_summarize(
                     if mapped:
                         evidence_sources_seen.add(mapped)
                 elif isinstance(event, ToolCallRequestEvent):
-                    display_message = f"{event.source} is calling a tool: {event.content[0].name}"
+                    display_message = (
+                        f"{event.source} is calling a tool: {event.content[0].name}"
+                    )
                 elif isinstance(event, ToolCallExecutionEvent):
                     display_message = f"{event.source} tool execution complete."
                 elif isinstance(event, ToolCallSummaryMessage):
@@ -2103,7 +2213,9 @@ async def chat_with_agents_and_summarize(
             # Retry only for 429-like errors; otherwise raise immediately.
             if _is_rate_limit_exception(exc) and attempt < max_attempts:
                 if verbose:
-                    print(f"[RateLimit] attempt={attempt}/{max_attempts} -> retrying...")
+                    print(
+                        f"[RateLimit] attempt={attempt}/{max_attempts} -> retrying..."
+                    )
                 await _sleep_with_backoff(exc, attempt)
                 continue
             raise
@@ -2161,17 +2273,18 @@ async def chat_with_agents_and_summarize(
     else:
         payload = _build_evidence_payload(drug, gene, enabled_sources)
 
-
     # --- Serialize conversation messages into a JSON-serializable form and attach for auditability ---
     try:
         serialized_messages = []
         for m in full_conversation_messages:
             # BaseChatMessage like objects: keep source and content; include role if available
-            serialized_messages.append({
-                "source": getattr(m, "source", None),
-                "role": getattr(m, "role", None),
-                "content": getattr(m, "content", ""),
-            })
+            serialized_messages.append(
+                {
+                    "source": getattr(m, "source", None),
+                    "role": getattr(m, "role", None),
+                    "content": getattr(m, "content", ""),
+                }
+            )
         # If summary exists, prefer adding to it; otherwise attach to the payload so downstream save sees it.
         if isinstance(summary, dict):
             # do not overwrite if already present
@@ -2198,7 +2311,9 @@ async def chat_with_agents_and_summarize(
         addendum, add_tok = await _generate_rule_aligned_addendum(summary)
         if addendum:
             root = summary.get("root", {}) or {}
-            root["summary_reasoning"] = (root.get("fusion_explanation", "") + " " + addendum).strip()
+            root["summary_reasoning"] = (
+                root.get("fusion_explanation", "") + " " + addendum
+            ).strip()
             root["_token_usage_addendum"] = add_tok
             summary["root"] = root
 
@@ -2206,7 +2321,6 @@ async def chat_with_agents_and_summarize(
     except Exception:
         # Safe to ignore failures; fusion_explanation already exists.
         pass
-
 
     if verbose:
         root = summary.get("root", {})
@@ -2237,9 +2351,11 @@ def get_active_agents(
     model_client=None,
     enabled_agents: List[str] | None = None,
     return_enabled: bool = False,
-    use_planning_agent: bool = False,   # Added.
+    use_planning_agent: bool = False,  # Added.
 ):
-    agents = build_agents(model_client, ablation=ablation, use_planning_agent=use_planning_agent)
+    agents = build_agents(
+        model_client, ablation=ablation, use_planning_agent=use_planning_agent
+    )
     planning_agent = agents.get("planning_agent")
     rag_agent = agents.get("rag_agent")
     ml_agent = agents.get("ml_agent")
@@ -2385,7 +2501,7 @@ def main() -> None:
         active_agents, normalized_agents = get_active_agents(
             ablation=args.ablation,
             model_client=model_client,
-            enabled_agents=enabled_agents,   # Not a combo in this path.
+            enabled_agents=enabled_agents,  # Not a combo in this path.
             return_enabled=True,
             use_planning_agent=args.use_planning_agent,
         )

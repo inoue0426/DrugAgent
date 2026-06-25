@@ -7,7 +7,8 @@ from __future__ import annotations
 from typing import Any, Dict, List, Optional
 
 from autogen_agentchat.agents import AssistantAgent
-from autogen_ext.models.openai import AzureOpenAIChatCompletionClient, _model_info
+from autogen_ext.models.openai import (AzureOpenAIChatCompletionClient,
+                                       _model_info)
 
 from drugagent.config import ALL_EVIDENCE_AGENTS, _get_config
 from drugagent.summary import get_summary_system_message
@@ -140,7 +141,9 @@ def _build_planning_system_message(enabled_sources: List[str]) -> str:
         agent_lines.append("- MLAgent: Performs machine learning predictions.")
     if "KG" in enabled_sources:
         agent_lines.append("- KGAgent: Calculates scores from knowledge graph data.")
-    agent_lines.append("- SummaryAgent: Synthesizes findings and produces the final report.")
+    agent_lines.append(
+        "- SummaryAgent: Synthesizes findings and produces the final report."
+    )
     team_agents = "\n".join(agent_lines)
 
     return f"""
@@ -176,6 +179,7 @@ def create_model_client(model_type: str, model_name: Optional[str] = None):
     Returns:
         Autogen model client.
     """
+
     def resolve_model_name(
         preferred_name: Optional[str], deployment: Optional[str]
     ) -> Optional[str]:

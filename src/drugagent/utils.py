@@ -144,7 +144,11 @@ def _is_rate_limit_exception(exc: Exception) -> bool:
     if isinstance(exc, RateLimitError):
         return True
     msg = str(exc)
-    return ("RateLimit" in msg) or ("RateLimitReached" in msg) or ("Error code: 429" in msg)
+    return (
+        ("RateLimit" in msg)
+        or ("RateLimitReached" in msg)
+        or ("Error code: 429" in msg)
+    )
 
 
 def _retry_after_seconds(exc: Exception, default: float = 3.0) -> float:
@@ -183,6 +187,6 @@ async def _sleep_with_backoff(exc: Exception, attempt: int) -> None:
         attempt: Current retry attempt count.
     """
     base_wait = _retry_after_seconds(exc, default=3.0)
-    exp_wait = (1.7 ** attempt)
+    exp_wait = 1.7**attempt
     wait = max(base_wait, exp_wait) + random.uniform(0, 0.75)
     await asyncio.sleep(wait)

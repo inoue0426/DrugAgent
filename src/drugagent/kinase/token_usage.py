@@ -14,7 +14,9 @@ class TokenUsage:
     calls: int = 0
     breakdown: list = field(default_factory=list)
 
-    def add(self, usage: Any, tag: str = "", meta: Optional[Dict[str, Any]] = None) -> None:
+    def add(
+        self, usage: Any, tag: str = "", meta: Optional[Dict[str, Any]] = None
+    ) -> None:
         """Accumulate token usage from an SDK response object.
 
         Args:

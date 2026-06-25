@@ -6,17 +6,11 @@ from enum import Enum
 from typing import Any, Dict, List, Optional, Tuple
 
 from drugagent.config import _get_config, _get_reasoning_settings
-from drugagent.summary import (
-    _extract_json_block,
-    _get_summary_client,
-    _run_summary_with_evidence,
-    apply_final_decision,
-)
-from drugagent.utils import (
-    _is_rate_limit_exception,
-    _sleep_with_backoff,
-    normalize_enabled_agents,
-)
+from drugagent.summary import (_extract_json_block, _get_summary_client,
+                               _run_summary_with_evidence,
+                               apply_final_decision)
+from drugagent.utils import (_is_rate_limit_exception, _sleep_with_backoff,
+                             normalize_enabled_agents)
 
 
 class EvalMode(str, Enum):
@@ -51,6 +45,7 @@ async def _run_json_llm(
 
     for attempt in range(1, max_attempts + 1):
         try:
+
             def _call_llm():
                 try:
                     return client.responses.create(
@@ -93,7 +88,10 @@ async def _run_json_llm(
     try:
         if hasattr(response, "choices") and response.choices:
             choice0 = response.choices[0]
-            if hasattr(choice0, "message") and getattr(choice0.message, "content", None) is not None:
+            if (
+                hasattr(choice0, "message")
+                and getattr(choice0.message, "content", None) is not None
+            ):
                 content = choice0.message.content or ""
             else:
                 try:
@@ -101,14 +99,22 @@ async def _run_json_llm(
                 except Exception:
                     content = ""
         else:
-            out = getattr(response, "output", None) or getattr(response, "outputs", None)
+            out = getattr(response, "output", None) or getattr(
+                response, "outputs", None
+            )
             if out and isinstance(out, (list, tuple)) and len(out) > 0:
                 first = out[0]
                 if isinstance(first, dict):
-                    cont = first.get("content") or first.get("body") or first.get("text")
+                    cont = (
+                        first.get("content") or first.get("body") or first.get("text")
+                    )
                     if isinstance(cont, list) and cont:
                         if isinstance(cont[0], dict):
-                            text = cont[0].get("text") or cont[0].get("value") or cont[0].get("content")
+                            text = (
+                                cont[0].get("text")
+                                or cont[0].get("value")
+                                or cont[0].get("content")
+                            )
                             if text:
                                 content = text
                         elif isinstance(cont[0], str):
@@ -116,7 +122,9 @@ async def _run_json_llm(
                     elif isinstance(cont, str):
                         content = cont
                 else:
-                    text_attr = getattr(first, "text", None) or getattr(first, "content", None)
+                    text_attr = getattr(first, "text", None) or getattr(
+                        first, "content", None
+                    )
                     if isinstance(text_attr, str):
                         content = text_attr
             if not content and hasattr(response, "output_text"):
@@ -139,6 +147,7 @@ async def _run_json_llm(
         "calls": 1,
     }
     return obj, tok
+
 
 def get_llm_only_summary_system_message(enabled_sources: List[str]) -> str:
     source_lines = []
@@ -176,7 +185,8 @@ Constraints:
 - Do NOT create reasoning trees
 - Do NOT invent evidence
 """
-    
+
+
 def get_unstructured_fusion_system_message(enabled_sources: List[str]) -> str:
     source_lines = []
     if "ML" in enabled_sources:
@@ -213,6 +223,7 @@ Constraints:
 - Be conservative if the evidence is conflicting or incomplete.
 """
 
+
 def get_llm_only_decision_system_message() -> str:
     return """You are DecisionAgent.
 
@@ -235,6 +246,7 @@ Constraints:
 - Use only the reasoning_tree and the evidence payload.
 - Be conservative if the evidence is conflicting or incomplete.
 """
+
 
 async def run_eval_mode(
     payload: Dict[str, Any],

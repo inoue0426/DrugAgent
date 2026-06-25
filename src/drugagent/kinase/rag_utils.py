@@ -3,20 +3,18 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import re
 import sqlite3
 import time
 from typing import Any, Dict, List, Optional, Tuple
 
 import faiss
 import numpy as np
-import re
 
 from common_utils import normalize_drug, normalize_protein
-from rag_validation_utils import (
-    apply_hypothesis_entity_check,
-    validate_stage2_output,
-    validate_stage2_quotes,
-)
+from rag_validation_utils import (apply_hypothesis_entity_check,
+                                  validate_stage2_output,
+                                  validate_stage2_quotes)
 from token_usage import TokenUsage
 
 DEFAULT_CACHE_PATH = "rag_pair_cache.sqlite3"
@@ -47,7 +45,9 @@ def _contains_term(text: str, term: str) -> bool:
     if not text or not term:
         return False
     if len(term) <= 2:
-        return re.search(rf"\b{re.escape(term)}\b", text, flags=re.IGNORECASE) is not None
+        return (
+            re.search(rf"\b{re.escape(term)}\b", text, flags=re.IGNORECASE) is not None
+        )
     return term.lower() in text.lower()
 
 
@@ -76,6 +76,7 @@ def _apply_binary_label_to_rag_obj(obj: Dict[str, Any]) -> None:
     Args:
         obj: RAG result dict.
     """
+
     def _map(container: Any) -> None:
         if not isinstance(container, dict):
             return
@@ -90,7 +91,6 @@ def _apply_binary_label_to_rag_obj(obj: Dict[str, Any]) -> None:
     stage2 = obj.get("stage2")
     if isinstance(stage2, dict):
         _map(stage2)
-
 
 
 class PairCacheSQLite:
@@ -189,13 +189,14 @@ def make_pair_cache_key(
         "top_drug_pmc": int(top_drug_pmc),
         "top_target_pmc": int(top_target_pmc),
         "chunks_per_pmc": int(chunks_per_pmc),
-        'min_chunk_words': int(min_chunk_words)
+        "min_chunk_words": int(min_chunk_words),
     }
     key_json = json.dumps(
         key_obj, ensure_ascii=True, sort_keys=True, separators=(",", ":")
     )
     key_hash = hashlib.sha256(key_json.encode("utf-8")).hexdigest()
     return key_hash, key_json
+
 
 def load_faiss_index(index_path: str = INDEX_PATH) -> faiss.Index:
     if not os.path.exists(index_path):
@@ -209,6 +210,7 @@ def load_metadata(meta_path: str = META_PATH) -> Any:
     with open(meta_path, encoding="utf-8") as f:
         return json.load(f)
 
+
 def is_rate_limit_error(e: Exception) -> bool:
     msg = str(e).lower()
     if "429" in msg:
@@ -218,6 +220,7 @@ def is_rate_limit_error(e: Exception) -> bool:
     if "too many requests" in msg:
         return True
     return False
+
 
 def get_retry_after(e: Exception):
     if hasattr(e, "response") and hasattr(e.response, "headers"):
@@ -229,8 +232,10 @@ def get_retry_after(e: Exception):
                 return None
     return None
 
-import time
+
 import random
+import time
+
 
 def call_with_retry(func, max_retries=6, base_backoff=1.5, max_backoff=120):
 
@@ -248,14 +253,17 @@ def call_with_retry(func, max_retries=6, base_backoff=1.5, max_backoff=120):
                 raise
 
             retry_after = get_retry_after(e)
-            print(f"[call_with_retry] got error: {str(e)[:200]} retry_after={retry_after}", flush=True)
+            print(
+                f"[call_with_retry] got error: {str(e)[:200]} retry_after={retry_after}",
+                flush=True,
+            )
 
             if retry_after:
                 sleep_time = retry_after + random.uniform(0, 1.0)
             else:
                 sleep_time = min(
                     max_backoff,
-                    base_backoff * (2 ** attempt) * (0.8 + 0.4 * random.random())
+                    base_backoff * (2**attempt) * (0.8 + 0.4 * random.random()),
                 )
 
             print(f"[429] sleeping {sleep_time:.1f}s (attempt {attempt+1})", flush=True)
@@ -270,12 +278,14 @@ def call_with_retry(func, max_retries=6, base_backoff=1.5, max_backoff=120):
 # LLM labeling
 # --------------------------------------------------------------------------------------
 
+
 def clean_excerpt_text(s: str) -> str:
     # remove control chars, collapse whitespace
     s2 = re.sub(r"[\x00-\x1f\x7f-\x9f]", " ", s or "")
     s2 = re.sub(r"\s+", " ", s2).strip()
     # optionally truncate very long metadata-like sequences
     return s2
+
 
 def generate_strength_label_science(
     query_text: str,
@@ -323,7 +333,8 @@ def generate_strength_label_science(
     # -------------------------
     # Use string.Template for safe interpolation
     # -------------------------
-    prompt_template = Template(r"""
+    prompt_template = Template(
+        r"""
 You are an expert pharmacology and molecular biology annotator and hypothesis writer.
 
 Task: Using ONLY the provided excerpt, produce structured evidence (stage1) and then a hypothesis-oriented judgment (stage2).
@@ -394,7 +405,8 @@ BEGIN EXCERPT:
 <<<BEGIN EXCERPT>>>
 $excerpt
 <<<END EXCERPT>>>
-""".strip())
+""".strip()
+    )
 
     prompt = prompt_template.substitute(excerpt=excerpt, pmcids_json=pmcids_json)
 
@@ -413,7 +425,11 @@ $excerpt
     )
 
     if usage is not None:
-        usage.add(getattr(resp, "usage", None), tag="judge_single_stage", meta={"deployment": deployment_name})
+        usage.add(
+            getattr(resp, "usage", None),
+            tag="judge_single_stage",
+            meta={"deployment": deployment_name},
+        )
 
     result_text = resp.choices[0].message.content.strip()
 
@@ -421,12 +437,17 @@ $excerpt
     try:
         parsed = json.loads(result_text)
     except Exception:
-        return json.dumps({"error": "invalid_json_from_model", "raw": result_text}, ensure_ascii=False)
+        return json.dumps(
+            {"error": "invalid_json_from_model", "raw": result_text}, ensure_ascii=False
+        )
 
     if not isinstance(parsed, dict) or "stage1" not in parsed or "stage2" not in parsed:
-        return json.dumps({"error": "missing_stage1_or_stage2", "raw": parsed}, ensure_ascii=False)
+        return json.dumps(
+            {"error": "missing_stage1_or_stage2", "raw": parsed}, ensure_ascii=False
+        )
 
     return json.dumps(parsed, ensure_ascii=False, indent=2)
+
 
 # --------------------------------------------------------------------------------------
 # Retrieval helpers (depend on `filtered_chunks`)
@@ -434,76 +455,76 @@ $excerpt
 
 
 def pick_top_pmcids(
-      score_dict: Dict[int, float],
-      *,
-      filtered_chunks: List[Dict[str, Any]],
-      top_pmc: int = 3,
-      drug: Optional[str] = None,
-      protein: Optional[str] = None,
-      protein_aliases: Optional[List[str]] = None,
-      require_drug: bool = False,
-      require_protein: bool = False,
-  ) -> List[str]:
-      def _pmc_terms() -> tuple[list[str], list[str]]:
-          drug_terms: list[str] = []
-          protein_terms: list[str] = []
-          if drug:
-              raw = drug.strip().lower()
-              norm = normalize_drug(drug).lower() if drug else ""
-              for t in (raw, norm):
-                  if t and t not in drug_terms:
-                      drug_terms.append(t)
-          if protein:
-              if protein_aliases:
-                  for alias in protein_aliases:
-                      a = (alias or "").strip().lower()
-                      if a and a not in protein_terms:
-                          protein_terms.append(a)
-              raw_p = protein.strip().lower()
-              norm_p = normalize_protein(protein).lower() if protein else ""
-              for t in (raw_p, norm_p):
-                  if t and t not in protein_terms :
-                      protein_terms.append(t)
-          return drug_terms, protein_terms
+    score_dict: Dict[int, float],
+    *,
+    filtered_chunks: List[Dict[str, Any]],
+    top_pmc: int = 3,
+    drug: Optional[str] = None,
+    protein: Optional[str] = None,
+    protein_aliases: Optional[List[str]] = None,
+    require_drug: bool = False,
+    require_protein: bool = False,
+) -> List[str]:
+    def _pmc_terms() -> tuple[list[str], list[str]]:
+        drug_terms: list[str] = []
+        protein_terms: list[str] = []
+        if drug:
+            raw = drug.strip().lower()
+            norm = normalize_drug(drug).lower() if drug else ""
+            for t in (raw, norm):
+                if t and t not in drug_terms:
+                    drug_terms.append(t)
+        if protein:
+            if protein_aliases:
+                for alias in protein_aliases:
+                    a = (alias or "").strip().lower()
+                    if a and a not in protein_terms:
+                        protein_terms.append(a)
+            raw_p = protein.strip().lower()
+            norm_p = normalize_protein(protein).lower() if protein else ""
+            for t in (raw_p, norm_p):
+                if t and t not in protein_terms:
+                    protein_terms.append(t)
+        return drug_terms, protein_terms
 
-      def _pmc_mentions(pmc: str, terms: list[str]) -> bool:
-          if not terms:
-              return False
-          for idx in score_dict.keys():
-              chunk = filtered_chunks[int(idx)]
-              if chunk.get("pmc") != pmc:
-                  continue
-              text = (chunk.get("text", "") or "").lower()
-              if any(_contains_term(text, t) for t in terms):
-                  return True
-          return False
+    def _pmc_mentions(pmc: str, terms: list[str]) -> bool:
+        if not terms:
+            return False
+        for idx in score_dict.keys():
+            chunk = filtered_chunks[int(idx)]
+            if chunk.get("pmc") != pmc:
+                continue
+            text = (chunk.get("text", "") or "").lower()
+            if any(_contains_term(text, t) for t in terms):
+                return True
+        return False
 
-      pmc_score: Dict[str, float] = {}
-      for idx, score in score_dict.items():
-          pmc = filtered_chunks[int(idx)]["pmc"]
-          pmc_score[pmc] = max(pmc_score.get(pmc, -1e9), float(score))
+    pmc_score: Dict[str, float] = {}
+    for idx, score in score_dict.items():
+        pmc = filtered_chunks[int(idx)]["pmc"]
+        pmc_score[pmc] = max(pmc_score.get(pmc, -1e9), float(score))
 
-      drug_terms, protein_terms = _pmc_terms()
-      if require_drug:
-          pmc_score = {
-              pmc: score
-              for pmc, score in pmc_score.items()
-              if _pmc_mentions(pmc, drug_terms)
-          }
-      if require_protein:
-          pmc_score = {
-              pmc: score
-              for pmc, score in pmc_score.items()
-              if _pmc_mentions(pmc, protein_terms)
-          }
-      if not pmc_score:
-          pmc_score = {}
-          for idx, score in score_dict.items():
-              pmc = filtered_chunks[int(idx)]["pmc"]
-              pmc_score[pmc] = max(pmc_score.get(pmc, -1e9), float(score))
+    drug_terms, protein_terms = _pmc_terms()
+    if require_drug:
+        pmc_score = {
+            pmc: score
+            for pmc, score in pmc_score.items()
+            if _pmc_mentions(pmc, drug_terms)
+        }
+    if require_protein:
+        pmc_score = {
+            pmc: score
+            for pmc, score in pmc_score.items()
+            if _pmc_mentions(pmc, protein_terms)
+        }
+    if not pmc_score:
+        pmc_score = {}
+        for idx, score in score_dict.items():
+            pmc = filtered_chunks[int(idx)]["pmc"]
+            pmc_score[pmc] = max(pmc_score.get(pmc, -1e9), float(score))
 
-      ranked = sorted(pmc_score.items(), key=lambda x: (-x[1], x[0]))
-      return [pmc for pmc, _ in ranked[:top_pmc]]
+    ranked = sorted(pmc_score.items(), key=lambda x: (-x[1], x[0]))
+    return [pmc for pmc, _ in ranked[:top_pmc]]
 
 
 def collect_chunks_for_pmc(
@@ -521,7 +542,7 @@ def collect_chunks_for_pmc(
     methods_bonus=-0.2,
     co_mention_weight=1.0,
     single_mention_bonus=0.1,
-    min_chunk_words: int = 15,   # Added: default 15 words.
+    min_chunk_words: int = 15,  # Added: default 15 words.
 ) -> List[Dict[str, Any]]:
     """
     Collect top chunks for a given PMCID, with bonuses:
@@ -529,6 +550,7 @@ def collect_chunks_for_pmc(
       - Co-mention boost if chunk contains both drug and protein strings (case-insensitive)
     Exclude chunks shorter than `min_chunk_words` (by word count).
     """
+
     def section_bonus(text: str) -> float:
         t = (text or "")[:120].lower()
         if "results" in t:
@@ -566,13 +588,15 @@ def collect_chunks_for_pmc(
         txt = (text or "").lower()
         return any(_contains_term(txt, t) for t in terms)
 
-    def co_mention_bonus(text: str, drug: Optional[str], protein: Optional[str]) -> float:
+    def co_mention_bonus(
+        text: str, drug: Optional[str], protein: Optional[str]
+    ) -> float:
         b = 0.0
         if not drug and not protein:
             return 0.0
         txt = (text or "").lower()
         if drug and drug.lower() in txt and protein and protein.lower() in txt:
-            b += co_mention_weight   # big bonus for explicit co-mention
+            b += co_mention_weight  # big bonus for explicit co-mention
         elif drug and drug.lower() in txt:
             b += single_mention_bonus
         elif protein and protein.lower() in txt:
@@ -661,7 +685,7 @@ def retrieve_evidence_bundle(
     top_target_pmc: int = 1,
     chunks_per_pmc: int = 6,
     usage: Optional[TokenUsage] = None,
-    min_chunk_words: int = 15,   # Added: default 15 words.
+    min_chunk_words: int = 15,  # Added: default 15 words.
 ) -> Tuple[List[Dict[str, Any]], Dict[str, List[str]], str, Dict[str, Any]]:
     """
     Returns:
@@ -706,7 +730,11 @@ def retrieve_evidence_bundle(
     )
 
     if usage is not None:
-        usage.add(getattr(resp, "usage", None), tag="embeddings", meta={"n_queries": len(flat_queries)})
+        usage.add(
+            getattr(resp, "usage", None),
+            tag="embeddings",
+            meta={"n_queries": len(flat_queries)},
+        )
 
     Q = np.array([d.embedding for d in resp.data], dtype=np.float32)
     faiss.normalize_L2(Q)
@@ -806,7 +834,11 @@ def retrieve_evidence_bundle(
         "retrieval_id": f"retrieval-{int(time.time())}",
         "index_path": INDEX_PATH,
         # index.meta may not exist; try to get a sensible version string
-        "index_version": getattr(index, "meta", {}).get("version", "unknown") if hasattr(index, "meta") else "unknown",
+        "index_version": (
+            getattr(index, "meta", {}).get("version", "unknown")
+            if hasattr(index, "meta")
+            else "unknown"
+        ),
         "embedding_model": config.get("embedding_deployment"),
         "queries": queries,
         "k": int(k),
@@ -834,17 +866,30 @@ def retrieve_evidence_bundle(
     def _build_topk(cat_scores, pmc_list, n=4):
         out = []
         for pmc in pmc_list:
-            idxs = [int(idx) for idx in cat_scores.keys() if filtered_chunks[int(idx)]["pmc"] == pmc]
+            idxs = [
+                int(idx)
+                for idx in cat_scores.keys()
+                if filtered_chunks[int(idx)]["pmc"] == pmc
+            ]
             scored = sorted([(float(cat_scores[i]), i) for i in idxs], reverse=True)
             for score, idx in scored[:n]:
                 ch = filtered_chunks[idx]
-                out.append({"pmc": pmc, "chunk_idx": idx, "score": float(score), "snippet": ch.get("text","")[:300].replace("\n"," ")})
+                out.append(
+                    {
+                        "pmc": pmc,
+                        "chunk_idx": idx,
+                        "score": float(score),
+                        "snippet": ch.get("text", "")[:300].replace("\n", " "),
+                    }
+                )
         return out
 
     retrieval_meta["top_k_snippets"] = {
         "pair": _build_topk(cat_scores["pair"], top_pair_pmcids, n=chunks_per_pmc),
         "drug": _build_topk(cat_scores["drug"], top_drug_pmcids, n=chunks_per_pmc),
-        "target": _build_topk(cat_scores["target"], top_target_pmcids, n=chunks_per_pmc),
+        "target": _build_topk(
+            cat_scores["target"], top_target_pmcids, n=chunks_per_pmc
+        ),
     }
 
     query_text = (
@@ -852,7 +897,6 @@ def retrieve_evidence_bundle(
         f"about whether {drug} could directly interact with {protein}."
     )
     return combined_with_meta, pmcid_bundle, query_text, retrieval_meta
-
 
 
 def run_dti_rag(
@@ -911,18 +955,34 @@ def run_dti_rag(
             top_drug_pmc=top_drug_pmc,
             top_target_pmc=top_target_pmc,
             chunks_per_pmc=chunks_per_pmc,
-            min_chunk_words=min_chunk_words
+            min_chunk_words=min_chunk_words,
         )
         cached = cache.get(key_hash)
 
         if cached is not None:
             if isinstance(cached, dict):
-                cached["token_usage"] = {"calls": 0, "prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0}
+                cached["token_usage"] = {
+                    "calls": 0,
+                    "prompt_tokens": 0,
+                    "completion_tokens": 0,
+                    "total_tokens": 0,
+                }
                 if binary_class:
                     _apply_binary_label_to_rag_obj(cached)
                 return json.dumps(cached, ensure_ascii=True, sort_keys=True)
             # Defensive fallback.
-            return json.dumps({"raw": cached, "token_usage": {"calls": 0, "prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0}}, ensure_ascii=True)
+            return json.dumps(
+                {
+                    "raw": cached,
+                    "token_usage": {
+                        "calls": 0,
+                        "prompt_tokens": 0,
+                        "completion_tokens": 0,
+                        "total_tokens": 0,
+                    },
+                },
+                ensure_ascii=True,
+            )
 
     combined, pmcid_bundle, query_text, retrieval_meta = retrieve_evidence_bundle(
         drug,
@@ -937,8 +997,8 @@ def run_dti_rag(
         top_drug_pmc=top_drug_pmc,
         top_target_pmc=top_target_pmc,
         chunks_per_pmc=chunks_per_pmc,
-        usage=usage,   # Added.
-        min_chunk_words=min_chunk_words
+        usage=usage,  # Added.
+        min_chunk_words=min_chunk_words,
     )
 
     pmcid_bundle_full = {
@@ -946,7 +1006,9 @@ def run_dti_rag(
         "retrieval_meta": retrieval_meta,
         "query_text": query_text,
     }
-    pmcid_bundle_json = json.dumps(pmcid_bundle_full, sort_keys=True, ensure_ascii=False)
+    pmcid_bundle_json = json.dumps(
+        pmcid_bundle_full, sort_keys=True, ensure_ascii=False
+    )
     deployment_name = config["deployment_name"]
     result = generate_strength_label_science(
         query_text,
@@ -978,6 +1040,7 @@ def run_dti_rag(
     def _sanitize_for_json(x):
         # simple sanitizer: convert numpy numbers, etc., to python builtins; truncate long strings
         import numbers
+
         if isinstance(x, dict):
             return {str(k): _sanitize_for_json(v) for k, v in x.items()}
         if isinstance(x, list):
@@ -1002,7 +1065,11 @@ def run_dti_rag(
             {
                 "pmc": c.get("pmc"),
                 "chunk_id": c.get("chunk_id") or c.get("id") or None,
-                "text_snippet": (c.get("text","")[:400] if isinstance(c.get("text",""), str) else str(c.get("text",""))[:400]),
+                "text_snippet": (
+                    c.get("text", "")[:400]
+                    if isinstance(c.get("text", ""), str)
+                    else str(c.get("text", ""))[:400]
+                ),
                 "meta": _sanitize_for_json(c.get("meta", {})),
             }
             for c in combined
@@ -1030,7 +1097,7 @@ def run_dti_rag(
 
     # Try to use existing matching functions if they exist in the module's scope.
     match_fn = globals().get("match_quote_to_pmc")  # if you have an existing function
-    tws_fn = globals().get("token_window_score")    # if you have an existing function
+    tws_fn = globals().get("token_window_score")  # if you have an existing function
 
     obj = validate_stage2_quotes(
         obj,
@@ -1053,11 +1120,12 @@ def run_dti_rag(
         "breakdown": usage.breakdown,
     }
 
-
     # --- FINAL: sanitize obj for JSON, cache, and return ---
     def _final_sanitize(x):
         # reuse the previous sanitizer but stricter for final output
-        import numbers, math
+        import math
+        import numbers
+
         if isinstance(x, dict):
             out = {}
             for k, v in x.items():

@@ -14,14 +14,11 @@ from typing import Any, Dict, List, Optional, Tuple
 from openai import AzureOpenAI
 
 from drugagent import config as dag_config
-from drugagent.config import ALL_EVIDENCE_AGENTS, _get_config, _get_reasoning_settings
-from drugagent.utils import (
-    _is_rate_limit_exception,
-    _normalize_fusion_label,
-    _normalize_label,
-    _sleep_with_backoff,
-    normalize_enabled_agents,
-)
+from drugagent.config import (ALL_EVIDENCE_AGENTS, _get_config,
+                              _get_reasoning_settings)
+from drugagent.utils import (_is_rate_limit_exception, _normalize_fusion_label,
+                             _normalize_label, _sleep_with_backoff,
+                             normalize_enabled_agents)
 
 
 @dataclass
@@ -79,10 +76,6 @@ class TokenAgg:
         }
 
 
-
-
-
-
 def _is_content_filter_error(exc: Exception) -> bool:
     """Return True if exception looks like a content filter error.
 
@@ -130,6 +123,7 @@ SELF_HARM_PATTERNS = [
     r"overdose",
     r"cutting",
 ]
+
 
 def _redact_self_harm(text: str) -> str:
     """Redact self-harm related phrases to avoid content filters.
@@ -389,9 +383,9 @@ def _get_summary_client(reasoning_effort: Optional[str] = None) -> AzureOpenAI:
     return client
 
 
-
-
-def _build_summary_messages(system_message: str, payload: Any, use_minimal: bool) -> list[dict]:
+def _build_summary_messages(
+    system_message: str, payload: Any, use_minimal: bool
+) -> list[dict]:
     """Build messages for summary LLM calls.
 
     Args:
@@ -461,7 +455,9 @@ async def _run_summary_with_evidence(
     use_minimal_payload = False
     for attempt in range(1, max_attempts + 1):
         try:
-            messages = _build_summary_messages(system_message, payload, use_minimal_payload)
+            messages = _build_summary_messages(
+                system_message, payload, use_minimal_payload
+            )
 
             def _call_llm():
                 try:
@@ -506,7 +502,12 @@ async def _run_summary_with_evidence(
                 use_minimal_payload = True
                 messages = [
                     {"role": "system", "content": system_message},
-                    {"role": "user", "content": json.dumps(_minimal_payload_for_llm(_sanitize_payload_for_llm(payload)))},
+                    {
+                        "role": "user",
+                        "content": json.dumps(
+                            _minimal_payload_for_llm(_sanitize_payload_for_llm(payload))
+                        ),
+                    },
                 ]
                 continue
             if _is_rate_limit_exception(exc) and attempt < max_attempts:
@@ -521,7 +522,10 @@ async def _run_summary_with_evidence(
     try:
         if hasattr(response, "choices") and response.choices:
             choice0 = response.choices[0]
-            if hasattr(choice0, "message") and getattr(choice0.message, "content", None) is not None:
+            if (
+                hasattr(choice0, "message")
+                and getattr(choice0.message, "content", None) is not None
+            ):
                 content = choice0.message.content or ""
             else:
                 try:
@@ -529,14 +533,22 @@ async def _run_summary_with_evidence(
                 except Exception:
                     content = ""
         else:
-            out = getattr(response, "output", None) or getattr(response, "outputs", None)
+            out = getattr(response, "output", None) or getattr(
+                response, "outputs", None
+            )
             if out and isinstance(out, (list, tuple)) and len(out) > 0:
                 first = out[0]
                 if isinstance(first, dict):
-                    cont = first.get("content") or first.get("body") or first.get("text")
+                    cont = (
+                        first.get("content") or first.get("body") or first.get("text")
+                    )
                     if isinstance(cont, list) and cont:
                         if isinstance(cont[0], dict):
-                            text = cont[0].get("text") or cont[0].get("value") or cont[0].get("content")
+                            text = (
+                                cont[0].get("text")
+                                or cont[0].get("value")
+                                or cont[0].get("content")
+                            )
                             if text:
                                 content = text
                         elif isinstance(cont[0], str):
@@ -544,7 +556,9 @@ async def _run_summary_with_evidence(
                     elif isinstance(cont, str):
                         content = cont
                 else:
-                    text_attr = getattr(first, "text", None) or getattr(first, "content", None)
+                    text_attr = getattr(first, "text", None) or getattr(
+                        first, "content", None
+                    )
                     if isinstance(text_attr, str):
                         content = text_attr
             if not content and hasattr(response, "output_text"):
@@ -569,7 +583,10 @@ async def _run_summary_with_evidence(
         except Exception:
             obj["_input_messages"] = [
                 {"role": "system", "content": system_message},
-                {"role": "user", "content": json.dumps(_sanitize_payload_for_llm(payload))},
+                {
+                    "role": "user",
+                    "content": json.dumps(_sanitize_payload_for_llm(payload)),
+                },
             ]
     except Exception:
         pass
@@ -587,7 +604,11 @@ async def _run_summary_with_evidence(
 
     usage = getattr(response, "usage", None)
     if usage is None:
-        usage = getattr(response, "meta", None) or getattr(response, "output_meta", None) or getattr(response, "raw", None)
+        usage = (
+            getattr(response, "meta", None)
+            or getattr(response, "output_meta", None)
+            or getattr(response, "raw", None)
+        )
 
     obj["_token_usage_summary"] = {
         "prompt_tokens": int(getattr(usage, "prompt_tokens", 0) or 0),
@@ -807,6 +828,7 @@ Operational constraints:
     response = None
     for attempt in range(1, max_attempts + 1):
         try:
+
             def _call_llm():
                 try:
                     return client.responses.create(
@@ -845,7 +867,12 @@ Operational constraints:
                 use_minimal_payload = True
                 messages = [
                     {"role": "system", "content": system},
-                    {"role": "user", "content": json.dumps(_minimal_payload_for_llm(_sanitize_payload_for_llm(payload)))},
+                    {
+                        "role": "user",
+                        "content": json.dumps(
+                            _minimal_payload_for_llm(_sanitize_payload_for_llm(payload))
+                        ),
+                    },
                 ]
                 continue
             if _is_rate_limit_exception(exc) and attempt < max_attempts:
@@ -860,7 +887,10 @@ Operational constraints:
     try:
         if hasattr(response, "choices") and response.choices:
             choice0 = response.choices[0]
-            if hasattr(choice0, "message") and getattr(choice0.message, "content", None) is not None:
+            if (
+                hasattr(choice0, "message")
+                and getattr(choice0.message, "content", None) is not None
+            ):
                 content = choice0.message.content or ""
             else:
                 try:
@@ -868,14 +898,22 @@ Operational constraints:
                 except Exception:
                     content = ""
         else:
-            out = getattr(response, "output", None) or getattr(response, "outputs", None)
+            out = getattr(response, "output", None) or getattr(
+                response, "outputs", None
+            )
             if out and isinstance(out, (list, tuple)) and len(out) > 0:
                 first = out[0]
                 if isinstance(first, dict):
-                    cont = first.get("content") or first.get("body") or first.get("text")
+                    cont = (
+                        first.get("content") or first.get("body") or first.get("text")
+                    )
                     if isinstance(cont, list) and cont:
                         if isinstance(cont[0], dict):
-                            text = cont[0].get("text") or cont[0].get("value") or cont[0].get("content")
+                            text = (
+                                cont[0].get("text")
+                                or cont[0].get("value")
+                                or cont[0].get("content")
+                            )
                             if text:
                                 content = text
                         elif isinstance(cont[0], str):
@@ -883,7 +921,9 @@ Operational constraints:
                     elif isinstance(cont, str):
                         content = cont
                 else:
-                    text_attr = getattr(first, "text", None) or getattr(first, "content", None)
+                    text_attr = getattr(first, "text", None) or getattr(
+                        first, "content", None
+                    )
                     if isinstance(text_attr, str):
                         content = text_attr
             if not content and hasattr(response, "output_text"):
@@ -905,8 +945,6 @@ Operational constraints:
         "calls": 1,
     }
     return obj, tok
-
-
 
 
 def _contains_quant_assay(text: str) -> bool:
@@ -994,11 +1032,12 @@ async def apply_final_decision(
     kg = payload.get("kg_evidence") or {}
     rag = payload.get("rag_evidence") or {}
 
-
     ml_label_raw, ml_status = _get_source_label_with_status(root, "ML", enabled_agents)
     use_binary = dag_config.BINARY_MODE if binary_mode is None else bool(binary_mode)
     kg_label_raw, kg_status = _get_source_label_with_status(root, "KG", enabled_agents)
-    rag_label_raw, rag_status = _get_source_label_with_status(root, "RAG", enabled_agents)
+    rag_label_raw, rag_status = _get_source_label_with_status(
+        root, "RAG", enabled_agents
+    )
 
     def to_fusion(label: Optional[str], status: str) -> Optional[str]:
         if status != "present":
@@ -1017,17 +1056,25 @@ async def apply_final_decision(
     kg_high_conf_active = False
     if use_binary:
         rag_high_conf_active = _rag_is_high_confidence_active(rag.get("reason", ""))
-        kg_high_conf_active = _kg_is_high_confidence_active(bool(kg.get("kg_direct", False)), kg.get("reason", ""))
+        kg_high_conf_active = _kg_is_high_confidence_active(
+            bool(kg.get("kg_direct", False)), kg.get("reason", "")
+        )
 
     root["rag_high_conf_active"] = rag_high_conf_active
     root["kg_high_conf_active"] = kg_high_conf_active
 
     enabled_agents = normalize_enabled_agents(enabled_agents)
     root["enabled_agents"] = enabled_agents
-    root["disabled_agents"] = [a for a in ALL_EVIDENCE_AGENTS if a not in enabled_agents]
+    root["disabled_agents"] = [
+        a for a in ALL_EVIDENCE_AGENTS if a not in enabled_agents
+    ]
 
     src_to_label = {"ML": ml_label, "KG": kg_label, "RAG": rag_label}
-    available = [(s, src_to_label[s]) for s in ALL_EVIDENCE_AGENTS if s in enabled_agents and src_to_label[s]]
+    available = [
+        (s, src_to_label[s])
+        for s in ALL_EVIDENCE_AGENTS
+        if s in enabled_agents and src_to_label[s]
+    ]
     root["fusion_sources"] = [s for s, _ in available]
 
     decision_payload = {
@@ -1073,9 +1120,15 @@ async def apply_final_decision(
     label_raw = decision.get("fusion_label") or decision.get("label") or ""
     label = _normalize_fusion_label(label_raw) or "NA"
 
-    conf_raw = str(decision.get("fusion_conf", "") or decision.get("confidence", "")).strip().upper()
+    conf_raw = (
+        str(decision.get("fusion_conf", "") or decision.get("confidence", ""))
+        .strip()
+        .upper()
+    )
     conf = conf_raw if conf_raw in {"LOW", "MEDIUM", "HIGH"} else "LOW"
-    reason = str(decision.get("fusion_reason", "") or decision.get("reason", "")).strip()
+    reason = str(
+        decision.get("fusion_reason", "") or decision.get("reason", "")
+    ).strip()
 
     root["fusion_label"] = label
     root["fusion_conf"] = conf

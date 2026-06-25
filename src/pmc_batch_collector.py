@@ -256,9 +256,6 @@ def get_pmids_for_term(
     )
 
 
-
-
-
 def _expand_gene_query(gene: str) -> str:
     """Expand ambiguous gene symbols for PubMed search.
 

@@ -7,7 +7,8 @@ from typing import Callable, Optional
 
 from diskcache import Cache
 
-from src.utils import get_sequence_from_target_name, get_smiles_from_compound_name
+from src.utils import (get_sequence_from_target_name,
+                       get_smiles_from_compound_name)
 
 # Configuration constants
 CURRENT_SCRIPT_DIR = Path(__file__).resolve().parent
@@ -48,7 +49,9 @@ def init_cache(cache_dir: Path) -> Cache:
     return Cache(str(cache_dir))
 
 
-def cached_lookup(cache: Cache, key: str, fetcher: Callable[[], Optional[str]]) -> Optional[str]:
+def cached_lookup(
+    cache: Cache, key: str, fetcher: Callable[[], Optional[str]]
+) -> Optional[str]:
     """Return a cached value or fetch and store it.
 
     Args:
@@ -77,7 +80,9 @@ def get_cached_smiles(cache: Cache, drug_name: str) -> Optional[str]:
         SMILES string if found, otherwise None.
     """
     cache_key = f"{SMILES_CACHE_PREFIX}:{drug_name}"
-    return cached_lookup(cache, cache_key, lambda: get_smiles_from_local_or_global(drug_name))
+    return cached_lookup(
+        cache, cache_key, lambda: get_smiles_from_local_or_global(drug_name)
+    )
 
 
 def get_cached_sequence(cache: Cache, target_name: str) -> Optional[str]:
@@ -91,7 +96,9 @@ def get_cached_sequence(cache: Cache, target_name: str) -> Optional[str]:
         Protein sequence string if found, otherwise None.
     """
     cache_key = f"{SEQUENCE_CACHE_PREFIX}:{target_name}"
-    return cached_lookup(cache, cache_key, lambda: get_sequence_from_target_name(target_name))
+    return cached_lookup(
+        cache, cache_key, lambda: get_sequence_from_target_name(target_name)
+    )
 
 
 def get_smiles_from_local_or_global(drug_name: str) -> Optional[str]:

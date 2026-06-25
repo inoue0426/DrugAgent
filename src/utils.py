@@ -33,6 +33,7 @@ SALT_BASE = r"(hydrochloride|hcl|sulfate|sulphate|mesylate|maleate|fumarate|tart
 SALT_WITH_PREFIX = rf"(?:d|l|dl|d,l)\s*-\s*{SALT_BASE}"
 SALT_SUFFIX_RE = rf"(?:{SALT_WITH_PREFIX}|{SALT_BASE})"
 
+
 def _normalize_name(x: str) -> str:
     if x is None:
         return ""
@@ -462,7 +463,9 @@ def get_target_name_from_uniprot(uniprot_id):
         return None
 
 
-def _lookup_smiles_from_csv(path: Path, name_column: str, smiles_column: str, compound_name: str) -> Optional[str]:
+def _lookup_smiles_from_csv(
+    path: Path, name_column: str, smiles_column: str, compound_name: str
+) -> Optional[str]:
     try:
         df = pd.read_csv(path, usecols=[name_column, smiles_column])
         key = _normalize_name(compound_name)
@@ -474,6 +477,7 @@ def _lookup_smiles_from_csv(path: Path, name_column: str, smiles_column: str, co
         print(f"Error reading {path.name}: {e}")
     return None
 
+
 def _get_gpcr2smiles_map() -> Dict[str, str]:
     global _GPCR2SMILES_MAP
     if _GPCR2SMILES_MAP is None:
@@ -481,16 +485,22 @@ def _get_gpcr2smiles_map() -> Dict[str, str]:
             _GPCR2SMILES_MAP = {}
         else:
             df = pd.read_csv(GPCR2SMILES_PATH, usecols=["Compound name", "SMILES"])
-            df = df.dropna(subset=["Compound name", "SMILES"]).drop_duplicates(subset=["Compound name"])
+            df = df.dropna(subset=["Compound name", "SMILES"]).drop_duplicates(
+                subset=["Compound name"]
+            )
             _GPCR2SMILES_MAP = {
                 _normalize_name(n): str(s)
-                for n, s in zip(df["Compound name"].astype(str), df["SMILES"].astype(str))
+                for n, s in zip(
+                    df["Compound name"].astype(str), df["SMILES"].astype(str)
+                )
             }
     return _GPCR2SMILES_MAP
+
 
 def _lookup_smiles_from_gpcr2smiles(compound_name: str) -> Optional[str]:
     m = _get_gpcr2smiles_map()
     return m.get(_normalize_name(compound_name))
+
 
 def get_smiles_from_compound_name(compound_name):
     """Resolve SMILES by compound name using local files and PubChem fallback."""
@@ -499,14 +509,14 @@ def get_smiles_from_compound_name(compound_name):
         return smiles
 
     if DRUG2SMILES_PATH.exists():
-        smiles = _lookup_smiles_from_csv(DRUG2SMILES_PATH, "name", "SMILES", compound_name)
+        smiles = _lookup_smiles_from_csv(
+            DRUG2SMILES_PATH, "name", "SMILES", compound_name
+        )
         if smiles:
             return smiles
 
     try:
-        df = pd.read_csv(
-            NSC_SMILES_PATH, usecols=["NAME", "SMILES"]
-        )
+        df = pd.read_csv(NSC_SMILES_PATH, usecols=["NAME", "SMILES"])
         match = df[df["NAME"].astype(str).str.lower() == compound_name.lower()]
         if not match.empty:
             return match.iloc[0]["SMILES"]
@@ -553,10 +563,10 @@ def get_smiles_from_compound_name(compound_name):
         print(f"Error retrieving SMILES for compound name {compound_name}: {e}")
         return None
 
+
 import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
-
 
 _session = None
 

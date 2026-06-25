@@ -7,33 +7,22 @@ from __future__ import annotations
 import asyncio
 from typing import Optional, Tuple
 
-from autogen_agentchat.messages import (
-    BaseChatMessage,
-    ToolCallExecutionEvent,
-    ToolCallRequestEvent,
-    ToolCallSummaryMessage,
-)
+from autogen_agentchat.messages import (BaseChatMessage,
+                                        ToolCallExecutionEvent,
+                                        ToolCallRequestEvent,
+                                        ToolCallSummaryMessage)
 from autogen_agentchat.teams import SelectorGroupChat
 
-from drugagent.config import (
-    selector_prompt_no_planner,
-    selector_prompt_with_planner,
-    termination,
-)
+from drugagent.config import (selector_prompt_no_planner,
+                              selector_prompt_with_planner, termination)
 from drugagent.csv import check_already_processed, save_summary_to_csv
-from drugagent.evidence import _build_evidence_payload, _gather_evidence_parallel
-from drugagent.summary import (
-    _extract_json_block,
-    _run_summary_with_evidence,
-    _split_summary_output,
-    apply_final_decision,
-    attach_evidence_metadata,
-)
-from drugagent.utils import (
-    _is_rate_limit_exception,
-    _sleep_with_backoff,
-    normalize_enabled_agents,
-)
+from drugagent.evidence import (_build_evidence_payload,
+                                _gather_evidence_parallel)
+from drugagent.summary import (_extract_json_block, _run_summary_with_evidence,
+                               _split_summary_output, apply_final_decision,
+                               attach_evidence_metadata)
+from drugagent.utils import (_is_rate_limit_exception, _sleep_with_backoff,
+                             normalize_enabled_agents)
 
 
 def _selector_prompt_for_agents(active_agents) -> str:
@@ -100,14 +89,20 @@ async def chat_with_agents_and_summarize(
             save_version=save_version,
         ):
             if verbose:
-                print(f"[SKIP] Already processed: {drug}-{gene} for {ablation} ({model})")
+                print(
+                    f"[SKIP] Already processed: {drug}-{gene} for {ablation} ({model})"
+                )
             return None, None, None
 
         payload = await _gather_evidence_parallel(
             drug, gene, enabled_sources, verbose=verbose, binary_mode=binary_mode
         )
         summary = await _run_summary_with_evidence(
-            payload, ablation, enabled_sources, reasoning_effort=reasoning_effort, binary_mode=binary_mode
+            payload,
+            ablation,
+            enabled_sources,
+            reasoning_effort=reasoning_effort,
+            binary_mode=binary_mode,
         )
 
         await apply_final_decision(
@@ -189,7 +184,9 @@ async def chat_with_agents_and_summarize(
                     if mapped:
                         evidence_sources_seen.add(mapped)
                 elif isinstance(event, ToolCallRequestEvent):
-                    display_message = f"{event.source} is calling a tool: {event.content[0].name}"
+                    display_message = (
+                        f"{event.source} is calling a tool: {event.content[0].name}"
+                    )
                 elif isinstance(event, ToolCallExecutionEvent):
                     display_message = f"{event.source} tool execution complete."
                 elif isinstance(event, ToolCallSummaryMessage):
@@ -203,7 +200,9 @@ async def chat_with_agents_and_summarize(
         except Exception as exc:
             if _is_rate_limit_exception(exc) and attempt < max_attempts:
                 if verbose:
-                    print(f"[RateLimit] attempt={attempt}/{max_attempts} -> retrying...")
+                    print(
+                        f"[RateLimit] attempt={attempt}/{max_attempts} -> retrying..."
+                    )
                 await _sleep_with_backoff(exc, attempt)
                 continue
             raise
@@ -269,11 +268,13 @@ async def chat_with_agents_and_summarize(
     try:
         serialized_messages = []
         for m in full_conversation_messages:
-            serialized_messages.append({
-                "source": getattr(m, "source", None),
-                "role": getattr(m, "role", None),
-                "content": getattr(m, "content", ""),
-            })
+            serialized_messages.append(
+                {
+                    "source": getattr(m, "source", None),
+                    "role": getattr(m, "role", None),
+                    "content": getattr(m, "content", ""),
+                }
+            )
         if isinstance(summary, dict):
             if "_input_messages" not in summary:
                 summary["_input_messages"] = serialized_messages

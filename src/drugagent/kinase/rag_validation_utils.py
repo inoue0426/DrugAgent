@@ -5,7 +5,8 @@ import json
 import re
 from typing import Any, Callable, Dict, List, Optional, Tuple
 
-from common_utils import clean_text_for_matching, normalize_drug, normalize_protein
+from common_utils import (clean_text_for_matching, normalize_drug,
+                          normalize_protein)
 
 # Tunable thresholds for quote validation.
 TOKEN_OVERLAP_ACCEPT_THRESH = 0.6
@@ -33,7 +34,9 @@ def quote_contains_entity(quote: str, entity: str, is_protein: bool = False) -> 
     return e in q
 
 
-def hypothesis_mentions_entities(hypothesis: str, drug: str, protein: str) -> Tuple[bool, bool]:
+def hypothesis_mentions_entities(
+    hypothesis: str, drug: str, protein: str
+) -> Tuple[bool, bool]:
     """Check whether the hypothesis explicitly mentions the drug and protein names.
 
     Args:
@@ -75,7 +78,9 @@ def downgrade_label(label: str) -> str:
     return order[max(0, idx - 1)]
 
 
-def apply_hypothesis_entity_check(stage2_obj: Dict[str, Any], drug: str, protein: str) -> Dict[str, Any]:
+def apply_hypothesis_entity_check(
+    stage2_obj: Dict[str, Any], drug: str, protein: str
+) -> Dict[str, Any]:
     """Downgrade label if the hypothesis is missing drug or target names.
 
     Args:
@@ -174,7 +179,9 @@ def validate_stage2_quotes(
             if isinstance(pmcids, str):
                 candidate_pmcs = json.loads(pmcids)
             elif isinstance(pmcids, (list, dict)):
-                candidate_pmcs = list(pmcids) if isinstance(pmcids, list) else list(pmcids)
+                candidate_pmcs = (
+                    list(pmcids) if isinstance(pmcids, list) else list(pmcids)
+                )
         except Exception:
             candidate_pmcs = []
     if not candidate_pmcs and pmc2chunks:
@@ -241,7 +248,9 @@ def validate_stage2_quotes(
                         return {
                             "quote": q,
                             "pmc": pmc,
-                            "chunk_id": chunk.get("chunk_id") or chunk.get("id") or None,
+                            "chunk_id": chunk.get("chunk_id")
+                            or chunk.get("id")
+                            or None,
                             "method": "substring_exact",
                             "score": 1.0,
                         }
@@ -250,7 +259,9 @@ def validate_stage2_quotes(
                         best_score = ov
                         best_meta = {
                             "pmc": pmc,
-                            "chunk_id": chunk.get("chunk_id") or chunk.get("id") or None,
+                            "chunk_id": chunk.get("chunk_id")
+                            or chunk.get("id")
+                            or None,
                         }
             if best_score >= TOKEN_OVERLAP_ACCEPT_THRESH:
                 return {
@@ -264,8 +275,12 @@ def validate_stage2_quotes(
         return None
 
     for channel in ("drug_side", "target_side", "pair_side"):
-        for q in (ev.get(channel) or []):
-            qtxt = q if isinstance(q, str) else (q.get("quote") or q.get("snippet") or str(q))
+        for q in ev.get(channel) or []:
+            qtxt = (
+                q
+                if isinstance(q, str)
+                else (q.get("quote") or q.get("snippet") or str(q))
+            )
             res = _validate_quote(qtxt)
             if res:
                 validated[channel].append(res)
@@ -284,7 +299,9 @@ def validate_stage2_quotes(
             stage2_obj["label"] = "insufficient"
 
     stage2_obj.setdefault("validation", {})
-    stage2_obj["validation"]["validated_counts"] = {k: len(v) for k, v in validated.items()}
+    stage2_obj["validation"]["validated_counts"] = {
+        k: len(v) for k, v in validated.items()
+    }
     return stage2_obj
 
 
@@ -299,7 +316,9 @@ def _extract_quote_text_normalized(q: Any) -> str:
     return str(q)
 
 
-def validate_stage2_output(stage2_obj: Dict[str, Any], drug: str, protein: str) -> Dict[str, Any]:
+def validate_stage2_output(
+    stage2_obj: Dict[str, Any], drug: str, protein: str
+) -> Dict[str, Any]:
     """
     Post-validate stage2 results (stage2_obj parsed JSON).
     - If pair_side quotes do not include both drug and protein, mark pair evidence flags accordingly.
@@ -308,14 +327,23 @@ def validate_stage2_output(stage2_obj: Dict[str, Any], drug: str, protein: str) 
     if not isinstance(stage2_obj, dict):
         return {
             "raw": stage2_obj,
-            "validation_notes": ["stage2 output not JSON/dict; validation applied fallback structure"],
+            "validation_notes": [
+                "stage2 output not JSON/dict; validation applied fallback structure"
+            ],
             "evidence_quotes": {"drug_side": [], "target_side": [], "pair_side": []},
-            "pair_evidence": {"direct_dti_in_same_pmcid": False, "mentions_both_explicitly_in_same_pmcid": False},
+            "pair_evidence": {
+                "direct_dti_in_same_pmcid": False,
+                "mentions_both_explicitly_in_same_pmcid": False,
+            },
         }
 
     ev = stage2_obj.get("evidence_quotes")
     if ev is None or not isinstance(ev, dict):
-        stage2_obj["evidence_quotes"] = {"drug_side": [], "target_side": [], "pair_side": []}
+        stage2_obj["evidence_quotes"] = {
+            "drug_side": [],
+            "target_side": [],
+            "pair_side": [],
+        }
         ev = stage2_obj["evidence_quotes"]
 
     ps = ev.get("pair_side") or []
@@ -324,15 +352,17 @@ def validate_stage2_output(stage2_obj: Dict[str, Any], drug: str, protein: str) 
     for q in ps:
         try:
             qtxt = _extract_quote_text_normalized(q)
-            if quote_contains_entity(qtxt, drug, is_protein=False) and quote_contains_entity(
-                qtxt, protein, is_protein=True
-            ):
+            if quote_contains_entity(
+                qtxt, drug, is_protein=False
+            ) and quote_contains_entity(qtxt, protein, is_protein=True):
                 validated_pair.append(q)
         except Exception:
             continue
     stage2_obj["evidence_quotes"]["pair_side"] = validated_pair
 
-    if "pair_evidence" not in stage2_obj or not isinstance(stage2_obj.get("pair_evidence"), dict):
+    if "pair_evidence" not in stage2_obj or not isinstance(
+        stage2_obj.get("pair_evidence"), dict
+    ):
         stage2_obj["pair_evidence"] = {
             "direct_dti_in_same_pmcid": False,
             "mentions_both_explicitly_in_same_pmcid": False,

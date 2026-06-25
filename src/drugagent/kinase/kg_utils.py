@@ -7,6 +7,7 @@ from typing import Any, Dict, List, Optional, Set
 import pandas as pd
 from openai import AzureOpenAI
 
+
 def _resolve_repo_root() -> Path:
     """Resolve the repository root by walking up to pyproject.toml."""
     current = Path(__file__).resolve()
@@ -21,21 +22,13 @@ if str(ROOT_DIR) not in sys.path:
     sys.path.insert(0, str(ROOT_DIR))
 
 from .kg_cache_utils import PairCacheSQLite, make_pair_cache_key
-from .kg_graph_utils import (
-    Edge,
-    _path_edges_from_nodes,
-    build_bipartite_index,
-    find_paths_drug_to_gene,
-    make_path_evidence_text,
-    normalize_drug,
-    normalize_gene,
-    path_hub_meta,
-    rank_paths_structural,
-)
-from .kg_llm_utils import (
-    TokenUsage,
-    llm_judge_dti_from_paths_azure,
-)
+from .kg_graph_utils import (Edge, _path_edges_from_nodes,
+                             build_bipartite_index, find_paths_drug_to_gene,
+                             make_path_evidence_text, normalize_drug,
+                             normalize_gene, path_hub_meta,
+                             rank_paths_structural)
+from .kg_llm_utils import TokenUsage, llm_judge_dti_from_paths_azure
+
 
 def _binary_label_from_strength(label: Optional[str]) -> Optional[str]:
     """Map ordinal labels to binary Active/Inactive labels.
@@ -71,7 +64,6 @@ def _apply_binary_label_to_kg_result(result: Dict[str, Any]) -> None:
         return
     judgement.setdefault("label_ordinal", label)
     judgement["label"] = binary
-
 
 
 def predict_dti_strength_from_kg_paths(
@@ -301,14 +293,20 @@ def predict_dti_strength_full_pipeline(
             txt = str(info.get("interaction_text", "") or "").strip()
             if per_edge_char_cap and len(txt) > per_edge_char_cap:
                 txt = txt[:per_edge_char_cap].rstrip() + " ...[truncated]"
-            edge_texts.append(f"{info.get('drug_norm')} <-> {info.get('gene_norm')}: {txt}")
+            edge_texts.append(
+                f"{info.get('drug_norm')} <-> {info.get('gene_norm')}: {txt}"
+            )
 
         path_str = " -> ".join([f"{typ}:{val}" for typ, val in path])
         path_summary = f"{path_str}\n" + "\n".join(edge_texts)
         if path_summary_char_cap and len(path_summary) > path_summary_char_cap:
-            path_summary = path_summary[:path_summary_char_cap].rstrip() + " ...[truncated]"
+            path_summary = (
+                path_summary[:path_summary_char_cap].rstrip() + " ...[truncated]"
+            )
 
-        hub_meta = path_hub_meta(idx=idx, path=path, hub_degree_cutoff=hub_degree_cutoff)
+        hub_meta = path_hub_meta(
+            idx=idx, path=path, hub_degree_cutoff=hub_degree_cutoff
+        )
         intermediates = [
             val
             for typ, val in path[1:-1]

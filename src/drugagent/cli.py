@@ -9,9 +9,9 @@ import asyncio
 from typing import List
 
 from drugagent.agents import build_agents, create_model_client
+from drugagent.config import ALL_EVIDENCE_AGENTS
 from drugagent.orchestration import chat_with_agents_and_summarize
 from drugagent.utils import generate_ablation_configs, normalize_enabled_agents
-from drugagent.config import ALL_EVIDENCE_AGENTS
 
 
 def get_active_agents(
@@ -33,7 +33,9 @@ def get_active_agents(
     Returns:
         Agent list or (agent list, enabled agents).
     """
-    agents = build_agents(model_client, ablation=ablation, use_planning_agent=use_planning_agent)
+    agents = build_agents(
+        model_client, ablation=ablation, use_planning_agent=use_planning_agent
+    )
     planning_agent = agents.get("planning_agent")
     rag_agent = agents.get("rag_agent")
     ml_agent = agents.get("ml_agent")
@@ -208,8 +210,8 @@ def main() -> None:
             model=None,
             cache_enabled=not args.no_cache,
             reasoning_effort=reasoning_effort,
-        fast_mode=args.fast_mode and not args.no_fast_mode,
-    )
+            fast_mode=args.fast_mode and not args.no_fast_mode,
+        )
     )
 
 

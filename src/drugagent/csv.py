@@ -180,7 +180,7 @@ def save_summary_to_csv(
         "fusion_sources": ",".join(root.get("fusion_sources", []) or []),
     }
 
-    input_payload_obj = (summary.get("_input_payload") or {})
+    input_payload_obj = summary.get("_input_payload") or {}
     try:
         input_payload_json = json.dumps(input_payload_obj, ensure_ascii=True)
         if len(input_payload_json) > 2000:
@@ -189,13 +189,15 @@ def save_summary_to_csv(
         input_payload_json = ""
     row["input_payload"] = input_payload_json
 
-    token_total = (root.get("token_usage_total") or {})
+    token_total = root.get("token_usage_total") or {}
     row["token_usage"] = json.dumps(token_total, ensure_ascii=True)
 
     file_exists = os.path.exists(filename) and os.path.getsize(filename) > 0
 
     if not file_exists:
-        with tempfile.NamedTemporaryFile("w", delete=False, encoding="utf-8", newline="") as tmp:
+        with tempfile.NamedTemporaryFile(
+            "w", delete=False, encoding="utf-8", newline=""
+        ) as tmp:
             writer = csv.DictWriter(tmp, fieldnames=fields)
             writer.writeheader()
             writer.writerow(row)
@@ -252,7 +254,12 @@ def check_already_processed(
             if (row.get("reasoning_effort") or "") != (reasoning_effort or ""):
                 continue
             fusion_label = str(row.get("fusion_label", "") or "").strip()
-            if fusion_label == "" or fusion_label.upper() in {"NA", "N/A", "NONE", "NULL"}:
+            if fusion_label == "" or fusion_label.upper() in {
+                "NA",
+                "N/A",
+                "NONE",
+                "NULL",
+            }:
                 continue
             return True
     return False
