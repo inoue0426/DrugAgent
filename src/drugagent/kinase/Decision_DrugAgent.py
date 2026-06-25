@@ -106,6 +106,8 @@ class TokenAgg:
 
 _CONFIG: Optional[Dict[str, Any]] = None
 _REASONING_SETTINGS: Optional[Dict[str, Any]] = None
+OUTPUT_LABEL_MAP = {"Low": "Weak"}
+PAYLOAD_DIR = Path("output/input_payloads")
 
 
 def _get_config() -> Dict[str, Any]:
@@ -1701,6 +1703,12 @@ def save_summary_to_csv(
     summary: dict, ablation: str, model: Optional[str], reasoning_effort: Optional[str]
 ) -> None:
     """Persist summary results to CSV (separate per enabled-agent config and reasoning)."""
+    def _normalize_output_label(label: str) -> str:
+        return OUTPUT_LABEL_MAP.get(label, label)
+
+    def _safe_slug(value: str) -> str:
+        return re.sub(r"[^0-9A-Za-z._-]+", "_", value.strip()) or "unknown"
+
     root = summary.get("root", {}) or {}
     enabled_agents = root.get("enabled_agents") or ALL_EVIDENCE_AGENTS
     enabled_agents = normalize_enabled_agents(enabled_agents)
@@ -1732,13 +1740,13 @@ def save_summary_to_csv(
     row = {
         "drug": summary.get("drug", ""),
         "target": summary.get("target", ""),
-        "fusion_label": root.get("fusion_label", ""),
+        "fusion_label": _normalize_output_label(str(root.get("fusion_label", "") or "")),
         "fusion_conf": root.get("fusion_conf", ""),
         "fusion_rule": root.get("fusion_rule", ""),
         "fusion_reason": root.get("fusion_reason", ""),
-        "ml_label": root.get("ml_label", ""),
-        "kg_label": root.get("kg_label", ""),
-        "rag_label": root.get("rag_label", ""),
+        "ml_label": _normalize_output_label(str(root.get("ml_label", "") or "")),
+        "kg_label": _normalize_output_label(str(root.get("kg_label", "") or "")),
+        "rag_label": _normalize_output_label(str(root.get("rag_label", "") or "")),
         "enabled_agents": ",".join(enabled_agents),
         "config": config_id_from_enabled(enabled_agents),
         "reasoning_effort": reasoning_effort or "",
@@ -1748,13 +1756,27 @@ def save_summary_to_csv(
 
     # truncate input payload for CSV
     input_payload_obj = summary.get("_input_payload") or {}
+    input_payload_path = ""
+    if input_payload_obj:
+        PAYLOAD_DIR.mkdir(parents=True, exist_ok=True)
+        drug_slug = _safe_slug(str(summary.get("drug", "")))
+        target_slug = _safe_slug(str(summary.get("target", "")))
+        payload_file = PAYLOAD_DIR / f"{drug_slug}__{target_slug}.json"
+        try:
+            payload_file.write_text(
+                json.dumps(input_payload_obj, ensure_ascii=True, indent=2),
+                encoding="utf-8",
+            )
+            input_payload_path = str(payload_file)
+        except Exception:
+            input_payload_path = ""
     try:
         input_payload_json = json.dumps(input_payload_obj, ensure_ascii=True)
         if len(input_payload_json) > 2000:
             input_payload_json = input_payload_json[:2000] + "...(truncated)"
     except Exception:
         input_payload_json = ""
-    row["input_payload"] = input_payload_json
+    row["input_payload"] = input_payload_path or input_payload_json
 
     token_total = root.get("token_usage_total") or {}
     row["token_usage"] = json.dumps(token_total, ensure_ascii=True)
@@ -2323,9 +2345,15 @@ async def chat_with_agents_and_summarize(
         pass
 
     if verbose:
+        def _format_fusion_label(label: str) -> str:
+            value = (label or "").strip()
+            if value.lower() == "low":
+                return "Weak"
+            return value
+
         root = summary.get("root", {})
         print("--------------------------------")
-        print(f"[FUSION] {root.get('fusion_label', '')}")
+        print(f"[FUSION] {_format_fusion_label(root.get('fusion_label', ''))}")
         reason = root.get("fusion_reason", "")
         if reason:
             print(f"[REASON] {reason}")

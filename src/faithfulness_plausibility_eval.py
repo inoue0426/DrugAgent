@@ -4,9 +4,10 @@ import argparse
 import json
 import os
 import sys
+from collections import deque
 from dataclasses import asdict, dataclass
 from pathlib import Path
-from typing import Any, Dict, Iterable, Optional
+from typing import Any, Dict, Iterable, Optional, Tuple
 
 from anthropic import AnthropicFoundry
 
@@ -25,6 +26,7 @@ from src.faithfulness_plausibility_prompts import (
 DEFAULT_INPUT = Path("data/plausibility_faithfulness_demo.jsonl")
 DEFAULT_OUTPUT = Path("data/plausibility_faithfulness_results.jsonl")
 DEFAULT_CLAUDE_DEPLOYMENT = os.getenv("CLAUDE_DEPLOYMENT", "claude-opus-4-6")
+DEFAULT_SUMMARY_OUTPUT = Path("data/plausibility_faithfulness_from_summary.jsonl")
 
 
 @dataclass(frozen=True)
@@ -271,16 +273,118 @@ def _validate_record(record: Dict[str, Any]) -> None:
         raise ValueError(f"Missing required keys: {', '.join(missing)}")
 
 
-def run_batch(input_path: Path, output_path: Path) -> None:
+def _safe_json_load(raw: str) -> Dict[str, Any]:
+    try:
+        return json.loads(raw)
+    except Exception:
+        return {}
+
+
+def _load_payload_from_cell(raw: str) -> Dict[str, Any]:
+    """Load payload JSON from a CSV cell or referenced file path.
+
+    Args:
+        raw: CSV cell content (JSON string or file path).
+
+    Returns:
+        Parsed payload dict.
+    """
+    raw = (raw or "").strip()
+    if not raw:
+        return {}
+    if raw.endswith(".json"):
+        path = Path(raw)
+        if path.exists():
+            try:
+                return json.loads(path.read_text(encoding="utf-8"))
+            except Exception:
+                return {}
+    return _safe_json_load(raw)
+
+
+def _find_first_text(payload: Dict[str, Any], keys: Tuple[str, ...]) -> str:
+    queue = deque([payload])
+    while queue:
+        current = queue.popleft()
+        if isinstance(current, dict):
+            for key in keys:
+                if key in current and isinstance(current[key], str):
+                    value = current[key].strip()
+                    if value:
+                        return value
+            for value in current.values():
+                if isinstance(value, (dict, list)):
+                    queue.append(value)
+        elif isinstance(current, list):
+            for value in current:
+                if isinstance(value, (dict, list)):
+                    queue.append(value)
+    return ""
+
+
+def _extract_evidence_text(payload: Dict[str, Any], key: str) -> str:
+    evidence = payload.get(key)
+    if isinstance(evidence, dict):
+        for field in ("reason", "summary", "evidence", "rationale"):
+            value = evidence.get(field)
+            if isinstance(value, str) and value.strip():
+                return value.strip()
+    return ""
+
+
+def _summary_row_to_record(row: Dict[str, Any]) -> Dict[str, Any]:
+    drug = str(row.get("drug", "")).strip()
+    gene = str(row.get("target", "")).strip()
+    summary = str(row.get("summary_reasoning", "") or row.get("fusion_reason", "")).strip()
+    fusion_reason = str(row.get("fusion_reason", "")).strip()
+    payload = _load_payload_from_cell(str(row.get("input_payload", "") or ""))
+    ml_evidence = _extract_evidence_text(payload, "ml_evidence") or _find_first_text(
+        payload, ("ml_evidence", "ml_reason", "ml_summary")
+    )
+    kg_evidence = _extract_evidence_text(payload, "kg_evidence") or _find_first_text(
+        payload, ("kg_evidence", "kg_reason", "kg_summary")
+    )
+    rag_evidence = _extract_evidence_text(payload, "rag_evidence") or _find_first_text(
+        payload, ("rag_evidence", "rag_reason", "rag_summary")
+    )
+    return {
+        "drug": drug,
+        "gene": gene,
+        "summary": summary,
+        "ml_evidence": ml_evidence,
+        "kg_evidence": kg_evidence,
+        "rag_evidence": rag_evidence,
+        "fusion_reason": fusion_reason,
+    }
+
+
+def _load_summary_csv(path: Path) -> Iterable[Dict[str, Any]]:
+    import csv
+
+    with path.open("r", encoding="utf-8", newline="") as handle:
+        reader = csv.DictReader(handle)
+        for row in reader:
+            yield row
+
+
+def run_batch(input_path: Optional[Path], output_path: Path, summary_csv: Optional[Path]) -> None:
     """Run plausibility and faithfulness evaluations on a JSONL dataset.
 
     Args:
         input_path: Input JSONL path.
         output_path: Output JSONL path.
+        summary_csv: Optional summary CSV path.
     """
     client = _build_client()
     results = []
-    for record in _load_jsonl(input_path):
+    records: Iterable[Dict[str, Any]]
+    if summary_csv is not None:
+        records = (_summary_row_to_record(row) for row in _load_summary_csv(summary_csv))
+    else:
+        if input_path is None:
+            raise ValueError("input_path is required when summary_csv is not provided.")
+        records = _load_jsonl(input_path)
+    for record in records:
         _validate_record(record)
         plausibility = judge_plausibility(
             client=client,
@@ -352,13 +456,22 @@ def main() -> None:
         help=f"Input JSONL path. Default: {DEFAULT_INPUT}",
     )
     parser.add_argument(
+        "--summary-csv",
+        type=Path,
+        default=None,
+        help="Optional summary CSV path (output/summary_*.csv).",
+    )
+    parser.add_argument(
         "--output",
         type=Path,
         default=DEFAULT_OUTPUT,
         help=f"Output JSONL path. Default: {DEFAULT_OUTPUT}",
     )
     args = parser.parse_args()
-    run_batch(args.input, args.output)
+    output_path = args.output
+    if args.summary_csv is not None and args.output == DEFAULT_OUTPUT:
+        output_path = DEFAULT_SUMMARY_OUTPUT
+    run_batch(args.input, output_path, args.summary_csv)
 
 
 if __name__ == "__main__":

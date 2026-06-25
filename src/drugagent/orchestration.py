@@ -287,6 +287,8 @@ async def chat_with_agents_and_summarize(
                 }
             )
         if isinstance(summary, dict):
+            if "_input_payload" not in summary:
+                summary["_input_payload"] = payload
             if "_input_messages" not in summary:
                 summary["_input_messages"] = serialized_messages
         else:
@@ -304,9 +306,15 @@ async def chat_with_agents_and_summarize(
     attach_evidence_metadata(summary, payload)
 
     if verbose:
+        def _format_fusion_label(label: str) -> str:
+            value = (label or "").strip()
+            if value.lower() == "low":
+                return "Weak"
+            return value
+
         root = summary.get("root", {})
         print("--------------------------------")
-        print(f"[FUSION] {root.get('fusion_label', '')}")
+        print(f"[FUSION] {_format_fusion_label(root.get('fusion_label', ''))}")
         reason = root.get("fusion_reason", "")
         if reason:
             print(f"[REASON] {reason}")

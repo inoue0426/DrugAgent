@@ -35,6 +35,8 @@ AZURE_OPENAI_DEPLOYMENT_NAME=...
 AZURE_OPENAI_API_VERSION=...
 AZURE_OPENAI_EMBEDDING_DEPLOYMENT_NAME=...
 AZURE_OPENAI_EMBEDDING_API_VERSION=...
+CLAUDE_ENDPOINT=...
+CLAUDE_DEPLOYMENT=claude-opus-4-6
 ```
 
 Embedding variables are required for PubMed RAG.
@@ -47,18 +49,22 @@ Full DrugAgent run:
 uv run python -m drugagent.cli --drug Imatinib --gene KIT --enabled_agents ML,KG,RAG
 ```
 
-Plausibility/Faithfulness evaluation (Claude Opus):
+Plausibility/Faithfulness evaluation from a summary CSV:
+
+```bash
+uv run python src/faithfulness_plausibility_eval.py \
+  --summary-csv output/summary_v0_ml_kg_rag_nomodel_none.csv \
+  --output output/plausibility_faithfulness_from_summary.jsonl
+```
+
+The script reads the `input_payload` column (JSON or a path to `output/input_payloads/*.json`).
+
+Plausibility/Faithfulness evaluation from JSONL:
 
 ```bash
 uv run python src/faithfulness_plausibility_eval.py \
   --input data/plausibility_faithfulness_demo.jsonl \
   --output data/plausibility_faithfulness_results.jsonl
-```
-
-Claude setup:
-
-```bash
-CLAUDE_DEPLOYMENT=claude-opus-4-6
 ```
 
 Uses `AZURE_OPENAI_API_LLM_KEY` and `CLAUDE_ENDPOINT` from `.env` (see `src/drugagent/kinase/config_utils.py`).
@@ -68,6 +74,8 @@ Uses `AZURE_OPENAI_API_LLM_KEY` and `CLAUDE_ENDPOINT` from `.env` (see `src/drug
 - `output/trees/{config_id}/{drug}_{gene}.json` reasoning trees
 - `output/summary_{ablation}.csv` (CLI)
 - `output/summary.csv` (legacy summary output)
+- `output/input_payloads/{drug}__{target}.json` (payload snapshots for evaluation)
+- `output/plausibility_faithfulness_from_summary.jsonl`
 - `output/ml_dti_scores`
 - `output/ml_lookup_cache`
 - `output/rag_dti_cache.csv`

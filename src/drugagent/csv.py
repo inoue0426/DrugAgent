@@ -9,12 +9,14 @@ import json
 import os
 import re
 import tempfile
+from pathlib import Path
 from typing import List, Optional
 
 from drugagent.config import ALL_EVIDENCE_AGENTS
 from drugagent.utils import config_id_from_enabled, normalize_enabled_agents
 
 OUTPUT_LABEL_MAP = {"Low": "Weak"}
+PAYLOAD_DIR = Path("output/input_payloads")
 
 
 def ensure_csv_schema(filename: str, fields: List[str]) -> None:
@@ -195,13 +197,28 @@ def save_summary_to_csv(
     }
 
     input_payload_obj = summary.get("_input_payload") or {}
+    input_payload_path = ""
+    if input_payload_obj:
+        PAYLOAD_DIR.mkdir(parents=True, exist_ok=True)
+        drug_slug = str(summary.get("drug", "")).strip().replace(" ", "_")
+        target_slug = str(summary.get("target", "")).strip().replace(" ", "_")
+        payload_name = f"{drug_slug}__{target_slug}.json"
+        payload_file = PAYLOAD_DIR / payload_name
+        try:
+            payload_file.write_text(
+                json.dumps(input_payload_obj, ensure_ascii=True, indent=2),
+                encoding="utf-8",
+            )
+            input_payload_path = str(payload_file)
+        except Exception:
+            input_payload_path = ""
     try:
         input_payload_json = json.dumps(input_payload_obj, ensure_ascii=True)
         if len(input_payload_json) > 2000:
             input_payload_json = input_payload_json[:2000] + "...(truncated)"
     except Exception:
         input_payload_json = ""
-    row["input_payload"] = input_payload_json
+    row["input_payload"] = input_payload_path or input_payload_json
 
     token_total = root.get("token_usage_total") or {}
     row["token_usage"] = json.dumps(token_total, ensure_ascii=True)
