@@ -27,7 +27,6 @@ PROCESSED_KG_PATH = DATA_DIR / "processed_kg.csv"
 GPCR2SMILES_PATH = DATA_DIR / "gpcr2smiles.csv"
 
 
-# gpcr2smiles 用のインメモリ辞書（初回のみ構築）
 _GPCR2SMILES_MAP = None
 
 SALT_BASE = r"(hydrochloride|hcl|sulfate|sulphate|mesylate|maleate|fumarate|tartrate|citrate|oxalate|nitrate|benzoate|bitartrate|tosylate|succinate|phosphate|potassium|sodium|monohydrate|dihydrate|trihydrate|bromide|chloride|iodide)"
@@ -40,28 +39,24 @@ def _normalize_name(x: str) -> str:
     s = str(x).lower().strip()
     s = re.sub(r"\s+", " ", s)
 
-    # "(+)-", "(-)-", "(±)-" みたいな先頭の立体表記を除去
     s = re.sub(r"^\s*\((?:\+|\-|\±)\)\s*-\s*", "", s)
 
-    # 末尾の塩/水和物を繰り返し除去（"tartrate dihydrate" みたいなのに対応）
     while True:
         s2 = re.sub(rf"\s+{SALT_SUFFIX_RE}\s*$", "", s).strip()
         if s2 == s:
             break
         s = s2
 
-    # "(R)", "(S)" の除去
     s = re.sub(r"\(\s*(?:r|s)\s*\)", "", s).strip()
 
-    # 先頭のゴミ
     s = re.sub(r"^[\-\s]+", "", s)
     s = re.sub(r"\s+", " ", s)
     return s
 
 
 def to_camel_case(s):
-    s = s.lower().strip()  # 小文字＋前後空白除去
-    parts = s.split()  # スペースで分割（単語の区切り想定）
+    s = s.lower().strip()
+    parts = s.split()
     return "".join(p.capitalize() for p in parts)
 
 
@@ -90,7 +85,6 @@ def save_dti_results(drugs, targets, result, path):
         result (DTIScore): DTI score results
         path (str): Path to save CSV file
     """
-    # Convert DTIScore object to DataFrame
     df = pd.DataFrame(
         {
             "drug": drugs,
@@ -135,10 +129,8 @@ def calculate_binary_metrics(y_true, y_pred, y_pred_proba=None, decimals=4):
     """
     metrics = {}
 
-    # Calculate confusion matrix
     tn, fp, fn, tp = confusion_matrix(y_true, y_pred).ravel()
 
-    # Core metrics
     metrics["Accuracy"] = accuracy_score(y_true, y_pred)
     metrics["Balanced Accuracy"] = balanced_accuracy_score(y_true, y_pred)
     metrics["Precision"] = precision_score(y_true, y_pred)
@@ -147,18 +139,15 @@ def calculate_binary_metrics(y_true, y_pred, y_pred_proba=None, decimals=4):
     metrics["F1"] = f1_score(y_true, y_pred)
     metrics["MCC"] = matthews_corrcoef(y_true, y_pred)
 
-    # Error rates
     metrics["FPR"] = fp / (fp + tn) if (fp + tn) > 0 else 0
     metrics["FNR"] = fn / (fn + tp) if (fn + tp) > 0 else 0
 
-    # Add probability metrics if proba is provided
     if y_pred_proba is not None:
         metrics["AUC-ROC"] = roc_auc_score(y_true, y_pred_proba)
         metrics["AUPRC"] = average_precision_score(y_true, y_pred_proba)
         metrics["Log Loss"] = log_loss(y_true, y_pred_proba)
         metrics["Brier Score"] = np.mean((y_pred_proba - y_true) ** 2)
 
-    # Create DataFrame and round values
     metrics_df = pd.DataFrame(
         {"metric_name": list(metrics.keys()), "value": list(metrics.values())}
     )
@@ -178,7 +167,7 @@ from sklearn.metrics import (accuracy_score, average_precision_score,
 
 
 def specificity_score(y_true, y_pred):
-    """特異度（Specificity）"""
+    """Specificity."""
     cm = confusion_matrix(y_true, y_pred)
     if cm.shape == (2, 2):
         tn, fp, fn, tp = cm.ravel()
@@ -258,7 +247,6 @@ def evaluate_metrics(
 def format_dti_report_from_messages(messages: List[Any]) -> str:
     report_lines = []
 
-    # ユーザーの質問を抽出
     user_query = None
     for msg in messages:
         if isinstance(msg, TextMessage) and msg.source == "user":
@@ -340,31 +328,31 @@ def format_dti_report_from_messages(messages: List[Any]) -> str:
                     report_lines.append(f"  Error: {finding.get('error', 'N/A')}\n")
             report_lines.append("\n")
 
-    # SummaryAgent の最終メッセージから最も「Coincise」な結論を抽出
+    # Extract the most concise conclusion from the SummaryAgent final message.
     final_conclusion_text = None
     for msg in reversed(messages):
         if isinstance(msg, TextMessage) and msg.source == "SummaryAgent":
             content = msg.content.strip()
 
-            # 1. "Final Output:" で始まる行を優先して探す (SummaryAgentが生成する場合)
+            # 1. Prefer lines starting with "Final Output:" (SummaryAgent output).
             match_final_output = re.search(
                 r"Final Output:\s*(.+?)(?:\s*TERMINATE)?$", content, re.DOTALL
             )
             if match_final_output:
                 extracted_string = match_final_output.group(1).strip()
                 try:
-                    # リスト形式の文字列であればパースし、最後の要素 (理由付け) を取得
+                    # If the content is a list string, parse and take the last element.
                     parsed_list = ast.literal_eval(extracted_string)
                     if isinstance(parsed_list, list) and len(parsed_list) > 6:
                         final_conclusion_text = str(parsed_list[6])
                     else:
-                        # リスト形式だが不完全、または想定外のリスト形式の場合
+                        # List is incomplete or unexpected.
                         final_conclusion_text = extracted_string
                 except (ValueError, SyntaxError):
-                    # リスト形式ではない場合 (直接テキストの場合)
+                    # Not a list string (plain text).
                     final_conclusion_text = extracted_string
 
-                # 不要なクォートと改行コードを処理
+                # Strip extra quotes and escaped newlines.
                 if final_conclusion_text.startswith(
                     '"'
                 ) and final_conclusion_text.endswith('"'):
@@ -376,10 +364,10 @@ def format_dti_report_from_messages(messages: List[Any]) -> str:
                 final_conclusion_text = final_conclusion_text.replace(
                     "\\n", "\n"
                 ).strip()
-                break  # 適切な結論が見つかったのでループを終了
+                break  # Found a suitable conclusion.
 
-            # 2. `Final Output:` がないが、コンテンツ全体がリスト形式の文字列の場合 (提供されたログの最後の形式)
-            #    ただし、これはログの最後のメッセージにのみ適用されるべき
+            # 2. If no `Final Output:` but content is a list string (log tail format).
+            #    Only apply to the last message.
             if content.startswith("[") and content.endswith("]") and "," in content:
                 try:
                     parsed_list = ast.literal_eval(content)
@@ -396,21 +384,19 @@ def format_dti_report_from_messages(messages: List[Any]) -> str:
                         final_conclusion_text = final_conclusion_text.replace(
                             "\\n", "\n"
                         ).strip()
-                        break  # 適切な結論が見つかったのでループを終了
+                        break  # Found a suitable conclusion.
                 except (ValueError, SyntaxError):
-                    pass  # パースできない場合は次の条件を試す
+                    pass  # Try the next condition if parsing fails.
 
-            # 3. 上記のいずれにも当てはまらないが、"TERMINATE" を含むメッセージの場合 (思考プロセスを含む可能性あり)
-            #    この場合は、"TERMINATE" 以前の全てを結論とするが、最も簡潔なものが優先されるため、
-            #    このフォールバックは最後に評価されるべき。
-            #    しかし、今回のログでは、最後のメッセージがリスト形式なので、ここは通常ヒットしない。
-            #    もし LLM が `Final Output:` やリスト形式でなく、そのままのテキストを返した時に対応する。
+            # 3. If the message contains "TERMINATE" (may include reasoning),
+            #    take everything before it. This fallback should be last.
+            #    It is intended for cases where the LLM returns plain text.
             if "TERMINATE" in content:
                 temp_conclusion = content[: content.rfind("TERMINATE")].strip()
-                if not final_conclusion_text:  # まだ結論が見つかっていない場合のみ更新
+                if not final_conclusion_text:  # Only update if no conclusion yet.
                     final_conclusion_text = temp_conclusion.replace("\\n", "\n").strip()
-                    # SummaryAgent の Thought/Action/Observation のブロックを削除
-                    # より一般的なパターンで Thought: から次の Thought: または Action: までを削除
+                    # Remove SummaryAgent Thought/Action/Observation blocks.
+                    # Use a general pattern to remove from Thought: to the next block.
                     final_conclusion_text = re.sub(
                         r"(Thought:|Action:|Observation:).*?(?=(Thought:|Action:|Observation:|$))",
                         "",
@@ -418,7 +404,7 @@ def format_dti_report_from_messages(messages: List[Any]) -> str:
                         flags=re.DOTALL,
                     )
                     final_conclusion_text = final_conclusion_text.strip()
-                    break  # これを最終結論として採用し、ループを終了
+                    break  # Use this as the final conclusion.
 
     if final_conclusion_text:
         report_lines.append("### Final Conclusion from SummaryAgent:\n")
@@ -441,7 +427,6 @@ def save_dti_results(drugs, targets, result, path):
         result (DTIScore): DTI score results
         path (str): Path to save CSV file
     """
-    # Convert DTIScore object to DataFrame
     df = pd.DataFrame(
         {
             "drug": drugs,
@@ -509,12 +494,10 @@ def _lookup_smiles_from_gpcr2smiles(compound_name: str) -> Optional[str]:
 
 def get_smiles_from_compound_name(compound_name):
     """Resolve SMILES by compound name using local files and PubChem fallback."""
-    # 0) GPCR curated mapping (highest priority)
     smiles = _lookup_smiles_from_gpcr2smiles(compound_name)
     if smiles:
         return smiles
 
-    # 1) existing local files...
     if DRUG2SMILES_PATH.exists():
         smiles = _lookup_smiles_from_csv(DRUG2SMILES_PATH, "name", "SMILES", compound_name)
         if smiles:
@@ -524,14 +507,12 @@ def get_smiles_from_compound_name(compound_name):
         df = pd.read_csv(
             NSC_SMILES_PATH, usecols=["NAME", "SMILES"]
         )
-        # Look for matching compound name
         match = df[df["NAME"].astype(str).str.lower() == compound_name.lower()]
         if not match.empty:
             return match.iloc[0]["SMILES"]
     except Exception as e:
         print(f"Error reading local SMILES data: {e}")
 
-    # Additional local fallbacks
     if DRUGBANK_SMILES_PATH.exists():
         smiles = _lookup_smiles_from_csv(
             DRUGBANK_SMILES_PATH, "Name", "SMILES", compound_name
@@ -558,7 +539,6 @@ def get_smiles_from_compound_name(compound_name):
         if smiles:
             return smiles
 
-    # If not found locally, try PubChem API
     url = f"https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/{compound_name}/property/CanonicalSMILES/JSON"
     try:
         response = _get_session().get(url, timeout=(5, 15))
@@ -578,7 +558,6 @@ from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
 
-# グローバル session（再利用で高速＆安定）
 _session = None
 
 
@@ -605,13 +584,12 @@ def _get_session():
 def get_sequence_from_target_name(target_name: str):
     """
     Robust UniProt sequence fetch.
-    - timeout指定
-    - retry対応
-    - human gene限定
-    - reviewed優先
+    - timeout handling
+    - retries
+    - human genes only
+    - prefer reviewed
     """
 
-    # ヒト限定 & gene名検索
     query = f"gene_exact:{target_name} AND organism_id:9606"
 
     url = "https://rest.uniprot.org/uniprotkb/search"
@@ -619,7 +597,7 @@ def get_sequence_from_target_name(target_name: str):
         "query": query,
         "fields": "sequence",
         "format": "json",
-        "size": 1,  # 最初の1件のみ
+        "size": 1,
     }
 
     try:
@@ -628,7 +606,7 @@ def get_sequence_from_target_name(target_name: str):
         response = session.get(
             url,
             params=params,
-            timeout=(5, 15),  # (connect, read)
+            timeout=(5, 15),
         )
 
         response.raise_for_status()
@@ -673,10 +651,8 @@ def calculate_binary_metrics(y_true, y_pred, y_pred_proba=None, decimals=4):
     """
     metrics = {}
 
-    # Calculate confusion matrix
     tn, fp, fn, tp = confusion_matrix(y_true, y_pred).ravel()
 
-    # Core metrics
     metrics["Accuracy"] = accuracy_score(y_true, y_pred)
     metrics["Balanced Accuracy"] = balanced_accuracy_score(y_true, y_pred)
     metrics["Precision"] = precision_score(y_true, y_pred)
@@ -685,18 +661,15 @@ def calculate_binary_metrics(y_true, y_pred, y_pred_proba=None, decimals=4):
     metrics["F1"] = f1_score(y_true, y_pred)
     metrics["MCC"] = matthews_corrcoef(y_true, y_pred)
 
-    # Error rates
     metrics["FPR"] = fp / (fp + tn) if (fp + tn) > 0 else 0
     metrics["FNR"] = fn / (fn + tp) if (fn + tp) > 0 else 0
 
-    # Add probability metrics if proba is provided
     if y_pred_proba is not None:
         metrics["AUC-ROC"] = roc_auc_score(y_true, y_pred_proba)
         metrics["AUPRC"] = average_precision_score(y_true, y_pred_proba)
         metrics["Log Loss"] = log_loss(y_true, y_pred_proba)
         metrics["Brier Score"] = np.mean((y_pred_proba - y_true) ** 2)
 
-    # Create DataFrame and round values
     metrics_df = pd.DataFrame(
         {"metric_name": list(metrics.keys()), "value": list(metrics.values())}
     )

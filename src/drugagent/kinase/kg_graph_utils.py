@@ -39,29 +39,24 @@ def rank_paths_structural(
     paths: List[List[Node]],
     hub_degree_cutoff: int = 300,
     avoid_hubs: bool = True,
-    lambda_val: float = 0.6  # 引数に追加
+    lambda_val: float = 0.6
 ) -> List[Tuple[int, float]]:
     ranked = []
 
     for i, path in enumerate(paths, start=1):
-        # 基本スコア：パスが短いほど高スコア (1/エッジ数)
         n_edges = max(len(path) - 1, 1)
         score = 1.0 / n_edges
 
         hub_hits = 0
         if avoid_hubs and len(path) > 2:
-            # 中間ノード（薬物と遺伝子以外）の次数をチェック
             for typ, val in path[1:-1]:
                 deg = idx.drug_degree.get(val, 0) if typ == "Drug" else idx.gene_degree.get(val, 0)
                 if deg >= hub_degree_cutoff:
                     hub_hits += 1
 
-        # ハブペナルティの適用： score * (lambda^hub_hits)
-        # lambda_val が小さいほど、ハブを通るパスのスコアが激減する
         score *= (lambda_val ** hub_hits)
         ranked.append((i, score))
 
-    # スコアが高い順にソート
     ranked.sort(key=lambda x: x[1], reverse=True)
     return ranked
 

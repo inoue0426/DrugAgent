@@ -271,7 +271,6 @@ async def run_eval_mode(
             enabled_sources=enabled_sources,
             reasoning_effort=reasoning_effort,
         )
-        # ここは「LLM decision」を使う baseline
         decision_payload = {
             "drug": summary.get("drug", ""),
             "target": summary.get("target", ""),
@@ -291,7 +290,6 @@ async def run_eval_mode(
         root["_token_usage_decision"] = tok
         return summary
 
-    # DRUGAGENT: current default path
     summary = await _run_summary_with_evidence(
         payload=payload,
         ablation=ablation,

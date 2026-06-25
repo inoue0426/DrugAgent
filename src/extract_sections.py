@@ -67,9 +67,8 @@ def get_all_text(elem):
     return texts
 
 
-# --- Dictionary of target section aliases ---
 TARGET_SECTION_ALIASES = {
-    "Abstract": ["abstract", "summary"],  # Abstract is handled separately
+    "Abstract": ["abstract", "summary"],
     "Introduction": ["introduction", "background", "context", "aims", "purpose"],
     "Methods": [
         "methods",
@@ -187,15 +186,11 @@ def extract_sections(xml_path, target_section_aliases=TARGET_SECTION_ALIASES):
 
     section_texts = {}
 
-    # 1. Extract Abstract (usually under <front>/<article-meta>/<abstract>)
     abstract_elem = root.find(".//{*}abstract")
     if abstract_elem is not None:
         abstract_text = "\n".join(get_all_text(abstract_elem)).strip()
         section_texts["Abstract"] = abstract_text
-    # else:
-    #     print("Abstract not found.")
 
-    # 2. Extract sections from <body>/<sec>
     body = find_no_ns(root, "body")
     if body is None:
         body = root.find(".//{*}body")
@@ -216,11 +211,9 @@ def extract_sections(xml_path, target_section_aliases=TARGET_SECTION_ALIASES):
                 current_section_title = ""
 
             for target_name, aliases in target_section_aliases.items():
-                # Skip Abstract and References here since they are handled separately
                 if target_name in ["Abstract", "References"]:
                     continue
 
-                # Skip if section already extracted
                 if target_name in section_texts:
                     continue
 
@@ -228,15 +221,11 @@ def extract_sections(xml_path, target_section_aliases=TARGET_SECTION_ALIASES):
                     texts = get_all_text(sec)
                     full_text = "\n".join(texts).strip()
                     section_texts[target_name] = full_text
-                    # print(f"DEBUG: Found '{target_name}' with title '{current_section_title}'")
                     break
 
-    # 3. Extract References (usually under <back>/<ref-list>)
     ref_list_elem = root.find(".//{*}ref-list")
     if ref_list_elem is not None:
         references_text = "\n".join(get_all_text(ref_list_elem)).strip()
         section_texts["References"] = references_text
-    # else:
-    #     print("References not found.")
 
     return section_texts

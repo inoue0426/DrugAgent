@@ -995,7 +995,7 @@ def run_dti_rag(
         return str(x)
 
     try:
-        # combined は retrieve_evidence_bundle の戻り値（combined_with_meta）として run_dti_rag で受け取っているはず
+        # combined is the retrieve_evidence_bundle return (combined_with_meta) passed into run_dti_rag.
         obj.setdefault("meta", {})
         # store only compact info to avoid exploding cache size
         obj["meta"]["retrieval_combined"] = [

@@ -3,7 +3,7 @@ import warnings
 import spacy
 from transformers import GPT2Tokenizer, logging
 
-logging.set_verbosity_error()  # Transformersの警告だけ無視する
+logging.set_verbosity_error()
 
 nlp = spacy.load("en_core_web_sm")
 tokenizer = GPT2Tokenizer.from_pretrained("gpt2")
@@ -20,14 +20,12 @@ def split_into_chunks_with_pmc(text, pmc_id, max_tokens=900, overlap=50):
             print(f"Warning: chunk length {len(chunk_tokens)} exceeds 1024")
         chunk_text = tokenizer.decode(chunk_tokens, clean_up_tokenization_spaces=True)
 
-        # ここを辞書1つにまとめて拡張しやすくする
         chunk = {
             "pmc": pmc_id,
             "text": chunk_text,
             "token_start": start,
             "token_end": end,
             "token_length": len(chunk_tokens),
-            # ここに将来必要なメタ情報を追加可能
         }
 
         chunks.append(chunk)

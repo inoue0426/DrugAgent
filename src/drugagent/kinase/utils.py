@@ -3,12 +3,9 @@ import requests
 from tqdm import tqdm
 
 
-# ================================
-# PubChem CID → Drug Name
-# ================================
 def fetch_pubchem_name(cid):
     """
-    PubChem CID から化合物名を取得
+    Fetch compound name from PubChem CID.
     """
     url = f"https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/{int(cid)}/property/Title/JSON"
     try:
@@ -23,7 +20,7 @@ def fetch_pubchem_name(cid):
 
 def build_drug_name_dict(cid_series):
     """
-    CIDリストから {cid: drug_name} 辞書を作成
+    Build a {cid: drug_name} mapping from a CID list.
     """
     cid_unique = cid_series.dropna().unique()
     mapping = {}
@@ -32,12 +29,9 @@ def build_drug_name_dict(cid_series):
     return mapping
 
 
-# ================================
-# UniProt ID → Gene Symbol
-# ================================
 def fetch_uniprot_gene(uniprot_id):
     """
-    UniProt ID から Gene Symbol を取得
+    Fetch Gene Symbol from UniProt ID.
     """
     url = f"https://rest.uniprot.org/uniprotkb/{uniprot_id}.json"
     try:
@@ -54,7 +48,7 @@ def fetch_uniprot_gene(uniprot_id):
 
 def build_gene_name_dict(uniprot_series):
     """
-    UniProt IDリストから {uniprot_id: gene_symbol} 辞書を作成
+    Build a {uniprot_id: gene_symbol} mapping from a UniProt ID list.
     """
     ids_unique = uniprot_series.dropna().unique()
     mapping = {}
@@ -63,20 +57,14 @@ def build_gene_name_dict(uniprot_series):
     return mapping
 
 
-# ================================
-# メインMerge関数
-# ================================
 def merge_drug_gene_names(df, drug_id_col="Drug_ID", target_id_col="Target_ID"):
     """
-    Drug_ID (PubChem CID) と Target_ID (UniProt ID)
-    から Drug_Name, Gene_Name を付与する
+    Add Drug_Name and Gene_Name from Drug_ID (PubChem CID) and Target_ID (UniProt ID).
     """
 
-    # 1. マッピング辞書作成
     drug_dict = build_drug_name_dict(df[drug_id_col])
     gene_dict = build_gene_name_dict(df[target_id_col])
 
-    # 2. map
     df = df.copy()
     df["Drug_Name"] = df[drug_id_col].map(drug_dict)
     df["Gene_Name"] = df[target_id_col].map(gene_dict)

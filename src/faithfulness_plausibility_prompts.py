@@ -4,9 +4,6 @@ from __future__ import annotations
 
 from typing import Dict
 
-# -----------------------------------------------------------------------------
-# Plausibility prompt (from 10_DrugAgent-plausibility.ipynb)
-# -----------------------------------------------------------------------------
 
 PLAUSIBILITY_SYSTEM_PROMPT = """
 You are a careful biomedical evaluator.
@@ -69,9 +66,6 @@ Input summary:
 """.strip()
 
 
-# -----------------------------------------------------------------------------
-# Faithfulness prompt (from 10_DrugAgent_faithfullness.ipynb)
-# -----------------------------------------------------------------------------
 
 FAITHFULNESS_SYSTEM_PROMPT = """
 You are a careful biomedical judge.
@@ -144,9 +138,6 @@ Fusion explanation:
 """.strip()
 
 
-# -----------------------------------------------------------------------------
-# Minimal flow notes (implementation-agnostic)
-# -----------------------------------------------------------------------------
 
 FLOW_NOTES: Dict[str, str] = {
     "plausibility": (

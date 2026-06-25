@@ -10,13 +10,8 @@ from typing import Dict, Iterable, Optional, Set, Tuple
 import numpy as np
 import pandas as pd
 
-# =========================
-# Utilities
-# =========================
-
-
 def clean_ic50_series(s: pd.Series) -> pd.Series:
-    """IC50列（文字列含む）を数値に正規化。<, > を除去して numeric 化。"""
+    """Normalize IC50 values (including strings) to numeric; drop < and >."""
     s = s.astype("string")
     s = s.str.replace("<", "", regex=False).str.replace(">", "", regex=False)
     return pd.to_numeric(s, errors="coerce")
@@ -25,17 +20,12 @@ def clean_ic50_series(s: pd.Series) -> pd.Series:
 def safe_edge_weight_from_ic50(ic50_nm: pd.Series) -> pd.Series:
     """
     edge_weight = -log10(IC50_nM)
-    IC50<=0, NaN, inf を安全に処理
+    Safely handle IC50<=0, NaN, and inf.
     """
     x = ic50_nm.astype("float64")
     w = -np.log10(x)
     w[~np.isfinite(w)] = np.nan
     return pd.Series(w, index=ic50_nm.index, dtype="float64")
-
-
-# =========================
-# KG Builder
-# =========================
 
 
 @dataclass(frozen=True)
@@ -47,8 +37,8 @@ class KGArtifacts:
 
 class KGBuilder:
     """
-    train dataframe から、(drug_key=monomer:ID)-(target_key=uniprot:ID) の
-    bipartite edge/node を作るビルダー。
+    Build bipartite edges/nodes from train data:
+    (drug_key=monomer:ID)-(target_key=uniprot:ID).
     """
 
     def __init__(self, edge_cols: Optional[Iterable[str]] = None):
@@ -116,7 +106,6 @@ class KGBuilder:
         edge_cols = [c for c in self.edge_cols if c in kg_src.columns]
         edges = kg_src[edge_cols].copy()
 
-        # IC50 cleaning + optional edge_weight
         if "IC50_nM" in edges.columns:
             edges["IC50_nM"] = clean_ic50_series(edges["IC50_nM"])
             if make_edge_weight:
@@ -125,7 +114,6 @@ class KGBuilder:
         edges["source"] = source
         edges["edge_type"] = edge_type
 
-        # Nodes
         drug_node_cols = [
             c
             for c in [
@@ -174,15 +162,11 @@ class KGBuilder:
         artifacts.target_nodes.to_parquet(target_nodes_path, index=False)
 
 
-# =========================
-# Context Generator
-# =========================
-
-
 class ContextGenerator:
     """
-    edges + nodes から各種統計・隣接辞書を作って、(drug_key, target_key) の説明文を生成。
-    shortest path は scipy ではなく BFS で「必要なペアだけ」計算（早期打ち切り）して高速化。
+    Build stats and adjacency dicts from edges + nodes to generate text for
+    (drug_key, target_key). Shortest paths use BFS (not scipy) and compute
+    only needed pairs with early stopping.
     """
 
     def __init__(
@@ -197,12 +181,10 @@ class ContextGenerator:
         self.target_nodes = target_nodes
         self.max_bfs_depth = max_bfs_depth
 
-        # --- degree (unweighted) ---
         self.deg_target = self.edges["target_key"].value_counts()
         self.deg_drug = self.edges["drug_key"].value_counts()
         self.target_pct = self.deg_target.rank(pct=True)
 
-        # --- IC50 stats ---
         if "IC50_nM" in self.edges.columns:
             self.target_ic50_median = self.edges.groupby("target_key")[
                 "IC50_nM"
@@ -212,7 +194,6 @@ class ContextGenerator:
             self.target_ic50_median = pd.Series(dtype="float64")
             self.target_ic50_min = pd.Series(dtype="float64")
 
-        # --- adjacency dicts (2-hop etc.) ---
         self.drug_to_targets = (
             self.edges.groupby("drug_key")["target_key"]
             .apply(lambda x: set(x.values))
@@ -224,7 +205,6 @@ class ContextGenerator:
             .to_dict()
         )
 
-        # --- name/meta maps ---
         self.drug_name_map = (
             self.df_train.groupby("MonomerID")["name"].first().to_dict()
         )
@@ -232,7 +212,6 @@ class ContextGenerator:
             orient="index"
         )
 
-        # --- shortest path cache: (drug_key,target_key)->dist ---
         self._sp_cache: Dict[Tuple[str, str], Optional[int]] = {}
 
     def _bfs_shortest_path_bipartite(
@@ -241,8 +220,8 @@ class ContextGenerator:
         """
         bipartite graph on-the-fly BFS:
         drug -> targets -> drugs -> targets ...
-        目的 target_key に到達した最短 hop 長（drug->target が 1）を返す。
-        見つからなければ None。
+        Return the shortest hop length to reach target_key (drug->target is 1).
+        Return None if not found.
         """
         cache_key = (drug_key, target_key)
         if cache_key in self._sp_cache:
@@ -255,7 +234,6 @@ class ContextGenerator:
             self._sp_cache[cache_key] = None
             return None
 
-        # BFS state: node is ("drug", key) or ("target", key)
         start = ("drug", drug_key)
         goal = ("target", target_key)
 
@@ -272,14 +250,12 @@ class ContextGenerator:
                 return dist
 
             if kind == "drug":
-                # next: targets
                 for t in self.drug_to_targets.get(key, ()):
                     nxt = ("target", t)
                     if nxt not in seen:
                         seen.add(nxt)
                         q.append((nxt, dist + 1))
             else:
-                # kind == "target" -> next: drugs
                 for d in self.target_to_drugs.get(key, ()):
                     nxt = ("drug", d)
                     if nxt not in seen:
@@ -302,7 +278,6 @@ class ContextGenerator:
     def generate(self, drug_key: str, target_key: str) -> str:
         lines = []
 
-        # ========= Drug info =========
         try:
             monomer_id = int(drug_key.split(":")[1])
         except Exception:
@@ -314,7 +289,6 @@ class ContextGenerator:
             else drug_key
         )
 
-        # ========= Target info =========
         t_meta = self.target_meta_map.get(target_key, {})
         protein_name = (
             t_meta.get("TargetName") or t_meta.get("target_name") or target_key
@@ -339,12 +313,10 @@ class ContextGenerator:
             lines.append(f"EntryName: {entry_name}")
         lines.append("")
 
-        # ========= Direct interaction =========
         has_direct = target_key in self.drug_to_targets.get(drug_key, set())
         lines.append(f"Direct interaction in training graph: {has_direct}.")
         lines.append("")
 
-        # ========= Connectivity =========
         t_deg = int(self.deg_target.get(target_key, 0))
         d_deg = int(self.deg_drug.get(drug_key, 0))
         t_pct = float(self.target_pct.get(target_key, 0)) * 100.0
@@ -368,13 +340,13 @@ class ContextGenerator:
             lines.append("- The drug appears promiscuous.")
         lines.append("")
 
-        # ========= Shared neighbors (as in original; note: cross-type overlap may be 0 by construction) =========
         drug_targets = self.drug_to_targets.get(drug_key, set())
         target_drugs = self.target_to_drugs.get(target_key, set())
 
-        # 元コードは drug_targets & target_drugs を取っていたが、
-        # 片方は target集合、片方は drug集合なので通常 0 になりやすい。
-        # ここでは「2-hop根拠」として、targetの近傍drugが持つtarget集合の重なりを計算する例を入れる。
+        # The original code intersected drug_targets & target_drugs, but one is
+        # a target set and the other a drug set, so it often becomes 0.
+        # Here we treat this as "2-hop evidence" by overlapping targets from
+        # drugs neighboring the target.
         shared_2hop_targets: Set[str] = set()
         for d in target_drugs:
             shared_2hop_targets |= self.drug_to_targets.get(d, set())
@@ -396,7 +368,6 @@ class ContextGenerator:
             lines.append("- Some 2-hop network support.")
         lines.append("")
 
-        # ========= Shortest path (BFS) =========
         sp = self._bfs_shortest_path_bipartite(drug_key, target_key)
         if sp is None:
             lines.append(
@@ -415,7 +386,6 @@ class ContextGenerator:
                 lines.append(f"Shortest path (unweighted, bipartite BFS): {sp}.")
         lines.append("")
 
-        # ========= IC50 profile =========
         median_ic50 = self.target_ic50_median.get(target_key, np.nan)
         min_ic50 = self.target_ic50_min.get(target_key, np.nan)
 
@@ -435,13 +405,11 @@ class ContextGenerator:
             else:
                 lines.append("- The target shows weak druggability.")
 
-        # ========= Functional hint =========
         if func_hint:
             lines.append("")
             lines.append("Functional context:")
             lines.append(f"- {func_hint}")
 
-        # ========= Interpretation =========
         lines.append("")
         lines.append("Interpretation context:")
         lines.append(
@@ -459,14 +427,7 @@ class ContextGenerator:
         return "\n".join(lines)
 
 
-# =========================
-# Example usage
-# =========================
-
-
 def main():
-    # df_train = pd.read_csv('../data/train.csv.gz', index_col=0)
-    # ↑は環境に合わせて
     raise SystemExit("Set df_train loading path and call builder/generator as needed.")
 
 

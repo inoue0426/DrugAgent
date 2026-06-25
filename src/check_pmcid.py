@@ -8,7 +8,6 @@ import requests
 from diskcache import Cache
 from dotenv import load_dotenv
 
-# Ensure cache directory exists
 os.makedirs("cache", exist_ok=True)
 cache = Cache("cache")
 
@@ -39,13 +38,11 @@ def check_pmcid(pmid, email="inouey2@nih.gov"):
             return None
 
     except requests.exceptions.RequestException:
-        # Log the error if needed, but don't expose the exception
         print(f"Error looking up PMCID for {pmid}")
         cache[key] = None
         return None
 
 
-# --- NCBI E-utilities のエンドポイント ---
 PUBMED_ESEARCH_URL = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi"
 PMC_ID_CONVERT_URL = "https://www.ncbi.nlm.nih.gov/pmc/utils/idconv/v1.0/"
 
@@ -62,7 +59,7 @@ def get_pmcids_for_drug_gene(
             "retmax": max_search_results,
             "retmode": "xml",
             "maxdate": maxdate,
-            "datetype": "pdat",  # 発行日を基準
+            "datetype": "pdat",
         }
         response = requests.get(PUBMED_ESEARCH_URL, params=esearch_params)
         response.raise_for_status()

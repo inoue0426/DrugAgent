@@ -33,10 +33,6 @@ from botocore.exceptions import ClientError
 from diskcache import Cache
 from dotenv import load_dotenv
 
-# -------------------------
-# Config / globals
-# -------------------------
-
 load_dotenv()
 NCBI_API_KEY = os.environ.get("NCBI_API_KEY")
 
@@ -45,15 +41,12 @@ PMC_ID_CONVERT_URL = "https://www.ncbi.nlm.nih.gov/pmc/utils/idconv/v1.0/"
 
 DEFAULT_EMAIL = os.environ.get("NCBI_EMAIL", "inouey2@nih.gov")
 
-# Logging
 logging.basicConfig(level=logging.INFO, format="%(levelname)s:%(name)s:%(message)s")
 logger = logging.getLogger("src.pmc_batch_collector")
 
-# Cache
 os.makedirs("cache", exist_ok=True)
 cache = Cache("cache")
 
-# Reuse S3 client (big speedup)
 _S3 = boto3.client("s3", config=Config(signature_version=UNSIGNED))
 
 
@@ -63,11 +56,6 @@ class ESearchResult:
     pmids: List[str]
     term: str
     error: Optional[str] = None
-
-
-# -------------------------
-# Utility: polite HTTP
-# -------------------------
 
 
 def _sleep_jitter(base_sec: float, jitter_sec: float = 0.15) -> None:
@@ -137,11 +125,6 @@ def http_get_with_backoff(
     )
 
 
-# -------------------------
-# PubMed / PMC ID conversion
-# -------------------------
-
-
 def check_pmcid(pmid: str, email: str = DEFAULT_EMAIL) -> Optional[str]:
     """
     Convert PMID -> PMCID (if available), with caching.
@@ -208,7 +191,7 @@ def pubmed_esearch(
         resp = http_get_with_backoff(
             PUBMED_ESEARCH_URL,
             params=params,
-            timeout=(8, 30),  # <- ここ重要
+            timeout=(8, 30),
             max_retries=5,
             base_wait_sec=0.5,
         )
@@ -225,7 +208,6 @@ def pubmed_esearch(
         return out
 
     except Exception as e:
-        # 失敗はキャッシュしない（Good）
         return ESearchResult(ok=False, pmids=[], term=term, error=repr(e))
 
     finally:
@@ -292,11 +274,6 @@ def _expand_gene_query(gene: str) -> str:
     return gene
 
 
-# -------------------------
-# PMC OA download from S3
-# -------------------------
-
-
 def try_download_with_retries(
     s3_client,
     bucket_name: str,
@@ -327,7 +304,6 @@ def try_download_with_retries(
     return False
 
 
-# 改良版 download_pmc_s3（貼り替え）
 def download_pmc_s3(
     pmc_id: str,
     file_type: str = "xml",
@@ -350,16 +326,13 @@ def download_pmc_s3(
     output_path = os.path.join(output_dir, f"{pmc_id}.{file_type}")
     cache_path = os.path.join(cache_dir, f"{pmc_id}.{file_type}")
 
-    # Output exists => success
     if os.path.exists(output_path):
         return True
 
-    # Known-fail cache
     if cache.get(f"pmc_fail_{pmc_id}"):
         logger.debug(f"Skipping known-fail PMCID {pmc_id}")
         return False
 
-    # Local cache hit -> copy
     if os.path.exists(cache_path):
         try:
             shutil.copy(cache_path, output_path)
@@ -367,7 +340,6 @@ def download_pmc_s3(
         except Exception as e:
             logger.warning(f"Failed to copy cached {cache_path} -> {output_path}: {e}")
 
-    # Try S3 common keys
     s3_keys = [
         f"oa_comm/{file_type}/all/{pmc_id}.{file_type}",
         f"oa_noncomm/{file_type}/all/{pmc_id}.{file_type}",
@@ -385,15 +357,9 @@ def download_pmc_s3(
                     f"Failed to copy S3 cache {cache_path} -> {output_path}: {e}"
                 )
 
-    # All methods failed -> mark known-fail
     logger.error(f"Failed to download {pmc_id}.{file_type} from all known sources.")
     cache[f"pmc_fail_{pmc_id}"] = True
     return False
-
-
-# -------------------------
-# Collection helpers
-# -------------------------
 
 
 def download_pmcs_for_pmids(
@@ -416,7 +382,7 @@ def download_pmcs_for_pmids(
         "skipped_no_pmcid": 0,
         "skipped_exists": 0,
         "download_failed": 0,
-        "available_pmcids": set(),  # ✅ ここ（ループ外）
+        "available_pmcids": set(),  # Keep outside the loop
     }
 
     seen_pmcids = set()  # avoid double-counting if multiple PMIDs map to same PMCID
@@ -428,7 +394,6 @@ def download_pmcs_for_pmids(
                 stats["skipped_no_pmcid"] += 1
                 continue
 
-            # dedupe by PMCID
             if pmcid in seen_pmcids:
                 continue
             seen_pmcids.add(pmcid)
@@ -439,13 +404,13 @@ def download_pmcs_for_pmids(
             if os.path.exists(out_path):
                 stats["skipped_exists"] += 1
                 stats["downloaded"] += 1
-                stats["available_pmcids"].add(pmcid)  # ✅
+                stats["available_pmcids"].add(pmcid)
                 continue
 
             ok = download_pmc_s3(pmcid, output_dir=output_dir, cache_dir=cache_dir)
             if ok:
                 stats["downloaded"] += 1
-                stats["available_pmcids"].add(pmcid)  # ✅（これが無いとダメ）
+                stats["available_pmcids"].add(pmcid)
             else:
                 stats["download_failed"] += 1
 
@@ -474,7 +439,7 @@ def download_k_range_xml_for_term(
     seen_pmcids_total = set()
     fail_streak = 0
     dup_streak = 0
-    zero_progress_streak = 0  # ✅ ここで初期化（for page の外）
+    zero_progress_streak = 0
 
     reason = None
     pages_used = 0
@@ -526,7 +491,6 @@ def download_k_range_xml_for_term(
             new_pmids, output_dir=output_dir, cache_dir=cache_dir
         )
 
-        # ✅ ここ：new_avail を計算した直後に “進捗ゼロ” を判定
         new_avail = dl["available_pmcids"] - seen_pmcids_total
         seen_pmcids_total |= dl["available_pmcids"]
 
@@ -558,11 +522,6 @@ def download_k_range_xml_for_term(
         "page_size": page_size,
         "max_pages": max_pages,
     }
-
-
-# -------------------------
-# Main collectors
-# -------------------------
 
 
 def collect_papers(
@@ -640,7 +599,6 @@ def collect_papers_with_marginals(
     download_gene_pmcs: bool = False,
     polite_delay_sec: float = 0.3,
     sort: str = "pub date",
-    # NEW adaptive mode for single-term:
     k_single_min: int = 2,
     k_single_max: int = 10,
     single_page_size: int = 20,
@@ -670,7 +628,6 @@ def collect_papers_with_marginals(
         "gene_term": None,
         "gene_pmid_count": None,
         "gene_error": None,
-        # DL stats (3 buckets)
         "pair_downloaded": 0,
         "drug_downloaded": 0,
         "gene_downloaded": 0,
@@ -689,7 +646,6 @@ def collect_papers_with_marginals(
     drug_out = os.path.join(output_dir, "drug")
     gene_out = os.path.join(output_dir, "gene")
 
-    # --- Search: pair (top-N) ---
     pair = get_pmids_for_drug_gene(
         drug=drug,
         gene=gene,
@@ -705,7 +661,6 @@ def collect_papers_with_marginals(
     row["pair_pmid_count"] = len(pair.pmids)
     row["pair_error"] = pair.error
 
-    # --- Search: drug-only (top-N for counting, always recorded) ---
     query = f'("{drug}") AND "pubmed pmc"[sb]'
     d = get_pmids_for_term(
         term=query,
@@ -721,7 +676,6 @@ def collect_papers_with_marginals(
     row["drug_pmid_count"] = len(d.pmids)
     row["drug_error"] = d.error
 
-    # --- Search: gene-only (top-N for counting, always recorded) ---
     query = f'({_expand_gene_query(gene)}) AND "pubmed pmc"[sb]'
     g = get_pmids_for_term(
         term=query,
@@ -743,7 +697,6 @@ def collect_papers_with_marginals(
         row[f"{prefix}_skipped_no_pmcid"] = stats["skipped_no_pmcid"]
         row[f"{prefix}_skipped_exists"] = stats["skipped_exists"]
 
-    # --- Optional downloads: pair bucket (fixed top-N only) ---
     if download_pair_pmcs and pair.ok and pair.pmids:
         _apply_dl_stats(
             "pair",
@@ -752,7 +705,6 @@ def collect_papers_with_marginals(
             ),
         )
 
-    # drug
     if download_drug_pmcs and d.ok:
         dlr = download_k_range_xml_for_term(
             term=d.term,
@@ -762,7 +714,7 @@ def collect_papers_with_marginals(
             max_pages=single_max_pages,
             sort=sort,
             maxdate=maxdate,
-            output_dir=drug_out,  # ★ここ
+            output_dir=drug_out,
             cache_dir=cache_dir,
             polite_delay_sec=polite_delay_sec,
         )
@@ -771,7 +723,6 @@ def collect_papers_with_marginals(
         row["drug_reason"] = dlr["reason"]
         row["drug_pages_used"] = dlr["pages_used"]
 
-    # gene
     if download_gene_pmcs and g.ok:
         dlr = download_k_range_xml_for_term(
             term=g.term,
@@ -781,7 +732,7 @@ def collect_papers_with_marginals(
             max_pages=single_max_pages,
             sort=sort,
             maxdate=maxdate,
-            output_dir=gene_out,  # ★ここ
+            output_dir=gene_out,
             cache_dir=cache_dir,
             polite_delay_sec=polite_delay_sec,
         )
@@ -793,21 +744,15 @@ def collect_papers_with_marginals(
     return row
 
 
-# -------------------------
-# CLI demo
-# -------------------------
-
 if __name__ == "__main__":
     DRUG_NAME = "Gefitinib"
     GENE_NAME = "EGFR"
 
-    # Pair-only (with download)
     out = collect_papers(
         DRUG_NAME, GENE_NAME, max_search_results=20, maxdate="2018/12/31"
     )
     logger.info(f"Done: {out}")
 
-    # Pair + marginals (adaptive: try >=2 XML for drug & gene)
     out2 = collect_papers_with_marginals(
         DRUG_NAME,
         GENE_NAME,
