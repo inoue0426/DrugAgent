@@ -131,6 +131,7 @@ def save_summary_to_csv(
         reasoning_effort: Reasoning effort token.
         save_version: Optional version override.
     """
+
     def _normalize_output_label(label: str) -> str:
         """Map internal labels to output labels for CSV exports.
 

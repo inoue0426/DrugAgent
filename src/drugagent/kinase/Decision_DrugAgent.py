@@ -1703,6 +1703,7 @@ def save_summary_to_csv(
     summary: dict, ablation: str, model: Optional[str], reasoning_effort: Optional[str]
 ) -> None:
     """Persist summary results to CSV (separate per enabled-agent config and reasoning)."""
+
     def _normalize_output_label(label: str) -> str:
         return OUTPUT_LABEL_MAP.get(label, label)
 
@@ -1740,7 +1741,9 @@ def save_summary_to_csv(
     row = {
         "drug": summary.get("drug", ""),
         "target": summary.get("target", ""),
-        "fusion_label": _normalize_output_label(str(root.get("fusion_label", "") or "")),
+        "fusion_label": _normalize_output_label(
+            str(root.get("fusion_label", "") or "")
+        ),
         "fusion_conf": root.get("fusion_conf", ""),
         "fusion_rule": root.get("fusion_rule", ""),
         "fusion_reason": root.get("fusion_reason", ""),
@@ -2345,6 +2348,7 @@ async def chat_with_agents_and_summarize(
         pass
 
     if verbose:
+
         def _format_fusion_label(label: str) -> str:
             value = (label or "").strip()
             if value.lower() == "low":

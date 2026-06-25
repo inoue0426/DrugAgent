@@ -306,6 +306,7 @@ async def chat_with_agents_and_summarize(
     attach_evidence_metadata(summary, payload)
 
     if verbose:
+
         def _format_fusion_label(label: str) -> str:
             value = (label or "").strip()
             if value.lower() == "low":

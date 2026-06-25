@@ -335,7 +335,9 @@ def _extract_evidence_text(payload: Dict[str, Any], key: str) -> str:
 def _summary_row_to_record(row: Dict[str, Any]) -> Dict[str, Any]:
     drug = str(row.get("drug", "")).strip()
     gene = str(row.get("target", "")).strip()
-    summary = str(row.get("summary_reasoning", "") or row.get("fusion_reason", "")).strip()
+    summary = str(
+        row.get("summary_reasoning", "") or row.get("fusion_reason", "")
+    ).strip()
     fusion_reason = str(row.get("fusion_reason", "")).strip()
     payload = _load_payload_from_cell(str(row.get("input_payload", "") or ""))
     ml_evidence = _extract_evidence_text(payload, "ml_evidence") or _find_first_text(
@@ -367,7 +369,9 @@ def _load_summary_csv(path: Path) -> Iterable[Dict[str, Any]]:
             yield row
 
 
-def run_batch(input_path: Optional[Path], output_path: Path, summary_csv: Optional[Path]) -> None:
+def run_batch(
+    input_path: Optional[Path], output_path: Path, summary_csv: Optional[Path]
+) -> None:
     """Run plausibility and faithfulness evaluations on a JSONL dataset.
 
     Args:
@@ -379,7 +383,9 @@ def run_batch(input_path: Optional[Path], output_path: Path, summary_csv: Option
     results = []
     records: Iterable[Dict[str, Any]]
     if summary_csv is not None:
-        records = (_summary_row_to_record(row) for row in _load_summary_csv(summary_csv))
+        records = (
+            _summary_row_to_record(row) for row in _load_summary_csv(summary_csv)
+        )
     else:
         if input_path is None:
             raise ValueError("input_path is required when summary_csv is not provided.")
