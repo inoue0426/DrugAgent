@@ -39,6 +39,22 @@ Full DrugAgent run:
 uv run python -m drugagent.cli --drug Imatinib --gene KIT --enabled_agents ML,KG,RAG
 ```
 
+Plausibility/Faithfulness evaluation (Claude Opus):
+
+```bash
+uv run python src/faithfulness_plausibility_eval.py \
+  --input data/plausibility_faithfulness_demo.jsonl \
+  --output data/plausibility_faithfulness_results.jsonl
+```
+
+Claude setup:
+
+```bash
+CLAUDE_DEPLOYMENT=claude-opus-4-6
+```
+
+Uses `AZURE_OPENAI_API_LLM_KEY` and `CLAUDE_ENDPOINT` from `.env` (see `src/drugagent/kinase/config_utils.py`).
+
 ## Outputs
 
 - `output/trees/{config_id}/{drug}_{gene}.json` reasoning trees
