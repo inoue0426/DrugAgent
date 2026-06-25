@@ -5,6 +5,8 @@ Multi-agent workflow for drug-target interaction (DTI) evidence. It combines ML 
 [![arXiv](https://img.shields.io/badge/arXiv-2408.13378-b31b1b.svg)](https://arxiv.org/abs/2408.13378)
 [![CI](https://github.com/inoue0426/DrugAgent/actions/workflows/ci.yml/badge.svg)](https://github.com/inoue0426/DrugAgent/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Python](https://img.shields.io/badge/Python-3.11%2B-blue.svg)](https://www.python.org/)
+[![Last Commit](https://img.shields.io/github/last-commit/inoue0426/DrugAgent)](https://github.com/inoue0426/DrugAgent/commits/main)
 [![Code Style: Black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 [![Import Sorting: isort](https://img.shields.io/badge/imports-isort-1674b9.svg)](https://pycqa.github.io/isort/)
 [![uv](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/uv/main/assets/badge/v0.json)](https://github.com/astral-sh/uv)
