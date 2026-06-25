@@ -7,8 +7,7 @@ from __future__ import annotations
 from typing import Any, Dict, List, Optional
 
 from autogen_agentchat.agents import AssistantAgent
-from autogen_ext.models.openai import (AzureOpenAIChatCompletionClient,
-                                       _model_info)
+from autogen_ext.models.openai import AzureOpenAIChatCompletionClient, _model_info
 
 from drugagent.config import ALL_EVIDENCE_AGENTS, _get_config
 from drugagent.summary import get_summary_system_message

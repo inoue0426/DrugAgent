@@ -22,10 +22,12 @@ try:
 except Exception:
     from rag_utils import run_dti_rag
 
-from drugagent.config import (BINARY_MODE, KG_VERSION, _get_config,
-                              _get_tool_client)
-from drugagent.resources import (_get_kg_df, _get_rag_resources,
-                                 _load_rag_result_from_jsonl)
+from drugagent.config import BINARY_MODE, KG_VERSION, _get_config, _get_tool_client
+from drugagent.resources import (
+    _get_kg_df,
+    _get_rag_resources,
+    _load_rag_result_from_jsonl,
+)
 
 
 def _resolve_binary_mode(binary_mode: Optional[bool]) -> bool:

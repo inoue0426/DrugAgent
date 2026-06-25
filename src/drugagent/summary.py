@@ -14,11 +14,14 @@ from typing import Any, Dict, List, Optional, Tuple
 from openai import AzureOpenAI
 
 from drugagent import config as dag_config
-from drugagent.config import (ALL_EVIDENCE_AGENTS, _get_config,
-                              _get_reasoning_settings)
-from drugagent.utils import (_is_rate_limit_exception, _normalize_fusion_label,
-                             _normalize_label, _sleep_with_backoff,
-                             normalize_enabled_agents)
+from drugagent.config import ALL_EVIDENCE_AGENTS, _get_config, _get_reasoning_settings
+from drugagent.utils import (
+    _is_rate_limit_exception,
+    _normalize_fusion_label,
+    _normalize_label,
+    _sleep_with_backoff,
+    normalize_enabled_agents,
+)
 
 
 @dataclass

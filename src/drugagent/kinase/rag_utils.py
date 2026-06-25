@@ -12,9 +12,11 @@ import faiss
 import numpy as np
 
 from common_utils import normalize_drug, normalize_protein
-from rag_validation_utils import (apply_hypothesis_entity_check,
-                                  validate_stage2_output,
-                                  validate_stage2_quotes)
+from rag_validation_utils import (
+    apply_hypothesis_entity_check,
+    validate_stage2_output,
+    validate_stage2_quotes,
+)
 from token_usage import TokenUsage
 
 DEFAULT_CACHE_PATH = "rag_pair_cache.sqlite3"

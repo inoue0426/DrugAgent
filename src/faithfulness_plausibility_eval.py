@@ -16,8 +16,11 @@ if str(PROJECT_ROOT) not in sys.path:
 
 from src.config_utils import get_reasoning_settings, load_azure_openai_config
 from src.faithfulness_plausibility_prompts import (
-    FAITHFULNESS_SYSTEM_PROMPT, PLAUSIBILITY_SYSTEM_PROMPT,
-    build_faithfulness_user_prompt, build_plausibility_user_prompt)
+    FAITHFULNESS_SYSTEM_PROMPT,
+    PLAUSIBILITY_SYSTEM_PROMPT,
+    build_faithfulness_user_prompt,
+    build_plausibility_user_prompt,
+)
 
 DEFAULT_INPUT = Path("data/plausibility_faithfulness_demo.jsonl")
 DEFAULT_OUTPUT = Path("data/plausibility_faithfulness_results.jsonl")
