@@ -7,7 +7,8 @@ from typing import Callable, Optional
 
 from diskcache import Cache
 
-from src.utils import get_sequence_from_target_name, get_smiles_from_compound_name
+from src.utils import (get_sequence_from_target_name,
+                       get_smiles_from_compound_name)
 
 # Configuration constants
 CURRENT_SCRIPT_DIR = Path(__file__).resolve().parent

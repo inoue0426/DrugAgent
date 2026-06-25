@@ -12,18 +12,10 @@ import requests  # type: ignore
 from autogen_agentchat.messages import TextMessage, ToolCallSummaryMessage
 from DeepPurpose.dataset import load_broad_repurposing_hub
 from dotenv import load_dotenv
-from sklearn.metrics import (
-    accuracy_score,
-    average_precision_score,
-    balanced_accuracy_score,
-    confusion_matrix,
-    f1_score,
-    log_loss,
-    matthews_corrcoef,
-    precision_score,
-    recall_score,
-    roc_auc_score,
-)
+from sklearn.metrics import (accuracy_score, average_precision_score,
+                             balanced_accuracy_score, confusion_matrix,
+                             f1_score, log_loss, matthews_corrcoef,
+                             precision_score, recall_score, roc_auc_score)
 
 PROJECT_ROOT_DIR = Path(__file__).resolve().parents[1]
 DATA_DIR = PROJECT_ROOT_DIR / "data"
@@ -168,19 +160,11 @@ def calculate_binary_metrics(y_true, y_pred, y_pred_proba=None, decimals=4):
 
 import numpy as np
 import pandas as pd
-from sklearn.metrics import (
-    accuracy_score,
-    average_precision_score,
-    balanced_accuracy_score,
-    cohen_kappa_score,
-    confusion_matrix,
-    f1_score,
-    log_loss,
-    matthews_corrcoef,
-    precision_score,
-    recall_score,
-    roc_auc_score,
-)
+from sklearn.metrics import (accuracy_score, average_precision_score,
+                             balanced_accuracy_score, cohen_kappa_score,
+                             confusion_matrix, f1_score, log_loss,
+                             matthews_corrcoef, precision_score, recall_score,
+                             roc_auc_score)
 
 
 def specificity_score(y_true, y_pred):

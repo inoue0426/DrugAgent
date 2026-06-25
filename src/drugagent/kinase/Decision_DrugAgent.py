@@ -21,15 +21,15 @@ from typing import Any, Callable, Dict, List, Optional, Tuple
 
 import pandas as pd
 from autogen_agentchat.agents import AssistantAgent
-from autogen_agentchat.conditions import MaxMessageTermination, TextMentionTermination
-from autogen_agentchat.messages import (
-    BaseChatMessage,
-    ToolCallExecutionEvent,
-    ToolCallRequestEvent,
-    ToolCallSummaryMessage,
-)
+from autogen_agentchat.conditions import (MaxMessageTermination,
+                                          TextMentionTermination)
+from autogen_agentchat.messages import (BaseChatMessage,
+                                        ToolCallExecutionEvent,
+                                        ToolCallRequestEvent,
+                                        ToolCallSummaryMessage)
 from autogen_agentchat.teams import SelectorGroupChat
-from autogen_ext.models.openai import AzureOpenAIChatCompletionClient, _model_info
+from autogen_ext.models.openai import (AzureOpenAIChatCompletionClient,
+                                       _model_info)
 from openai import AzureOpenAI, RateLimitError
 
 from config_utils import get_reasoning_settings, load_azure_openai_config

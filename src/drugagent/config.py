@@ -9,7 +9,8 @@ import os
 from pathlib import Path
 from typing import Any, Dict, Optional
 
-from autogen_agentchat.conditions import MaxMessageTermination, TextMentionTermination
+from autogen_agentchat.conditions import (MaxMessageTermination,
+                                          TextMentionTermination)
 from openai import AzureOpenAI
 
 from config_utils import get_reasoning_settings, load_azure_openai_config

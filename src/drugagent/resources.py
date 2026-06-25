@@ -16,7 +16,8 @@ try:
 except Exception:
     from rag_utils import load_faiss_index, load_metadata
 
-from drugagent.config import KG_PATH, RAG_INDEX_PATH, RAG_META_PATH, RAG_RESULTS_JSONL
+from drugagent.config import (KG_PATH, RAG_INDEX_PATH, RAG_META_PATH,
+                              RAG_RESULTS_JSONL)
 
 # -----------------------------------------------------------------------------
 # Local resource loaders

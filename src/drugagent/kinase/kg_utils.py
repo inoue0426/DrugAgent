@@ -22,17 +22,11 @@ if str(ROOT_DIR) not in sys.path:
     sys.path.insert(0, str(ROOT_DIR))
 
 from .kg_cache_utils import PairCacheSQLite, make_pair_cache_key
-from .kg_graph_utils import (
-    Edge,
-    _path_edges_from_nodes,
-    build_bipartite_index,
-    find_paths_drug_to_gene,
-    make_path_evidence_text,
-    normalize_drug,
-    normalize_gene,
-    path_hub_meta,
-    rank_paths_structural,
-)
+from .kg_graph_utils import (Edge, _path_edges_from_nodes,
+                             build_bipartite_index, find_paths_drug_to_gene,
+                             make_path_evidence_text, normalize_drug,
+                             normalize_gene, path_hub_meta,
+                             rank_paths_structural)
 from .kg_llm_utils import TokenUsage, llm_judge_dti_from_paths_azure
 
 

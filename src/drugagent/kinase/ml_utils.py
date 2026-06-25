@@ -8,13 +8,9 @@ from typing import List, Sequence, Tuple, Union
 
 import numpy as np
 
-from .ml_cache_utils import (
-    ML_LOOKUP_CACHE_DIR,
-    ML_SCORE_CACHE_DIR,
-    get_cached_sequence,
-    get_cached_smiles,
-    init_cache,
-)
+from .ml_cache_utils import (ML_LOOKUP_CACHE_DIR, ML_SCORE_CACHE_DIR,
+                             get_cached_sequence, get_cached_smiles,
+                             init_cache)
 
 # Define a type alias for clarity
 ResultType = List[Union[str, float]]
