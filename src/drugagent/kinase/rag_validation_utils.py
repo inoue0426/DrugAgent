@@ -5,8 +5,7 @@ import json
 import re
 from typing import Any, Callable, Dict, List, Optional, Tuple
 
-from common_utils import (clean_text_for_matching, normalize_drug,
-                          normalize_protein)
+from common_utils import clean_text_for_matching, normalize_drug, normalize_protein
 
 # Tunable thresholds for quote validation.
 TOKEN_OVERLAP_ACCEPT_THRESH = 0.6
