@@ -18,6 +18,7 @@ autograd-gamma==0.5.0
 ax-platform==1.0.0
 babel==2.17.0
 beautifulsoup4==4.13.4
+black==24.10.0
 bleach==6.2.0
 boto3==1.39.3
 botocore==1.39.3
@@ -63,6 +64,7 @@ ipython==9.4.0
 ipython-pygments-lexers==1.1.1
 ipywidgets==8.1.7
 isoduration==20.11.0
+isort==5.13.2
 jaxtyping==0.3.2
 jedi==0.19.2
 jinja2==3.1.6
