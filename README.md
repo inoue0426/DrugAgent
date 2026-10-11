@@ -76,6 +76,18 @@ uv run python -m drugagent.cli --drug Imatinib --gene KIT --enabled_agents ML,KG
 
 This is an **example invocation**, not a guaranteed zero-configuration demo: ML model files, KG data, RAG assets, and the relevant service credentials must be available as described below. The repository includes a local KG asset, while the literature index may need to be obtained separately.
 
+## Browser demo: saved evidence explorer
+
+DrugAgent includes a local, read-only Gradio viewer for the saved drug–target examples in `output/summary_v0_ml_kg_rag_nomodel_none.csv` and `output/input_payloads/`. Choose a drug–target pair to inspect its recorded combined label, explanation, and ML/KG/RAG evidence. **No API keys, model downloads, or new inference are needed.**
+
+From the repository root:
+
+```bash
+uv run --no-project --python 3.11 --with gradio==6.5.1 python drugagent_demo.py
+```
+
+Open the local URL printed in the terminal (usually `http://127.0.0.1:7860`). This is a local browser server, not a public website. The saved examples are displayed as recorded; their labels and confidence are not independently validated here. To run predictions on new pairs, follow the CLI setup above, including its model, data, and credential requirements.
+
 ## Data and model assets
 
 | Component | Required resource | Configuration |
