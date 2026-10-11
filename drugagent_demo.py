@@ -6,7 +6,6 @@ from pathlib import Path
 
 import gradio as gr
 
-
 ROOT = Path(__file__).resolve().parent
 SUMMARY = ROOT / "output" / "summary_v0_ml_kg_rag_nomodel_none.csv"
 PAYLOAD_DIR = ROOT / "output" / "input_payloads"
