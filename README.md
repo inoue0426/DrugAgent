@@ -78,7 +78,7 @@ This is an **example invocation**, not a guaranteed zero-configuration demo: ML 
 
 ## Browser demo: saved evidence explorer
 
-DrugAgent includes a local, read-only Gradio viewer for the saved drug–target examples in `output/summary_v0_ml_kg_rag_nomodel_none.csv` and `output/input_payloads/`. Choose a drug–target pair to inspect its recorded combined label, explanation, and ML/KG/RAG evidence. **No API keys, model downloads, or new inference are needed.**
+A [public, read-only version](https://inoue0426.github.io/drugagent-demo/) is available on GitHub Pages without credentials or hosting fees. It shows the 11 saved examples and does not run new inference.\n\nDrugAgent includes a local, read-only Gradio viewer for the saved drug–target examples in `output/summary_v0_ml_kg_rag_nomodel_none.csv` and `output/input_payloads/`. Choose a drug–target pair to inspect its recorded combined label, explanation, and ML/KG/RAG evidence. **No API keys, model downloads, or new inference are needed.**
 
 From the repository root:
 
