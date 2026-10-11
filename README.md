@@ -9,7 +9,7 @@
 
 DrugAgent brings together **machine-learning predictions**, **knowledge-graph evidence**, and **biomedical literature** to assess candidate drug–target interactions. Instead of presenting a model score alone, the workflow combines evidence from specialized agents and produces a **reasoning tree** alongside a final prediction.
 
-**[Paper (arXiv)](https://arxiv.org/abs/2408.13378)** · **[Quick start](#quick-start)** · **[Outputs](#outputs)**
+**[Paper (arXiv)](https://arxiv.org/abs/2408.13378)** · **[Demo: explore saved results](https://inoue0426.github.io/drugagent-demo/)** · **[Quick start](#quick-start)** · **[Outputs](#outputs)**
 
 ## How it works
 
