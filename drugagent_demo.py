@@ -40,9 +40,7 @@ CHOICES = [
 
 def show_example(index):
     row, payload = EXAMPLES[int(index)]
-    evidence = [
-        payload.get(f"{name}_evidence") or {} for name in ("ml", "kg", "rag")
-    ]
+    evidence = [payload.get(f"{name}_evidence") or {} for name in ("ml", "kg", "rag")]
     ml, kg, rag = evidence
     return (
         row.get("fusion_label", ""),
@@ -92,8 +90,19 @@ def build_demo():
                 label="Literature explanation", lines=6, interactive=False
             )
         outputs = [
-            decision, confidence, fusion, reasoning, ml_label, pkd, ml_reason,
-            kg_label, direct, kg_reason, rag_label, pmc, rag_reason,
+            decision,
+            confidence,
+            fusion,
+            reasoning,
+            ml_label,
+            pkd,
+            ml_reason,
+            kg_label,
+            direct,
+            kg_reason,
+            rag_label,
+            pmc,
+            rag_reason,
         ]
         pair.change(show_example, inputs=pair, outputs=outputs)
         demo.load(show_example, inputs=pair, outputs=outputs)
